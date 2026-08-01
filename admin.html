@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Admin Panel - ServiceHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Password toggle styles added */
+        .password-toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 5px;
+            z-index: 5;
+        }
+        .password-toggle-btn:hover {
+            color: #667eea;
+        }
+        .form-group.password-group {
+            position: relative;
+        }
+        .form-group.password-group input {
+            padding-right: 45px;
+        }
+        
+        #adminPanel {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100vh !important;
+            min-height: 100vh !important;
+            max-width: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            background: #f5f7fa !important;
+            z-index: 9999 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+        }
+        #adminPanel .main-header {
+            position: sticky !important;
+            top: 0 !important;
+            background: white !important;
+            z-index: 100 !important;
+            padding: 15px 20px !important;
+            margin: 0 !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+        }
+        #adminPanel .admin-tabs {
+            position: sticky !important;
+            top: 70px !important;
+            background: white !important;
+            z-index: 99 !important;
+            padding: 10px 20px !important;
+            margin: 0 !important;
+            display: flex !important;
+            gap: 5px !important;
+            overflow-x: auto !important;
+            white-space: nowrap !important;
+            flex-wrap: nowrap !important;
+        }
+        #adminPanel .admin-tab {
+            flex: 0 0 auto !important;
+            padding: 10px 20px !important;
+            font-size: 14px !important;
+            background: none !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            color: #718096 !important;
+            transition: all 0.3s ease !important;
+        }
+        #adminPanel .admin-tab.active {
+            background: #667eea !important;
+            color: white !important;
+        }
+        #adminPanel .admin-content {
+            padding: 20px !important;
+            height: calc(100vh - 140px) !important;
+            overflow-y: auto !important;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #2d3748;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .admin-tab-content {
+            display: none;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+        .dashboard-cards {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+            gap: 20px !important;
+            margin-bottom: 20px !important;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .dashboard-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .dashboard-card h3 {
+            color: #4a5568;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .dashboard-card p {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .admin-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        .admin-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .admin-card-header h4 {
+            color: #2d3748;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        .admin-card-header p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-badge.pending_verification { background: #feebc8; color: #c05621; }
+        .status-badge.approved { background: #c6f6d5; color: #276749; }
+        .status-badge.rejected { background: #fed7d7; color: #c53030; }
+        .status-badge.active { background: #c6f6d5; color: #276749; }
+        .status-badge.blocked { background: #fed7d7; color: #c53030; }
+        .status-badge.submitted { background: #bee3f8; color: #2c5282; }
+        .status-badge.accepted { background: #c6f6d5; color: #276749; }
+        .status-badge.completed { background: #b2f5ea; color: #234e52; }
+        .status-badge.cancelled { background: #fed7d7; color: #c53030; }
+        .status-badge.payment_pending { background: #feebc8; color: #c05621; }
+        .status-badge.pending { background: #feebc8; color: #c05621; }
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 2px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .approve-btn { background: linear-gradient(135deg, #68d391 0%, #38a169 100%); color: white; }
+        .reject-btn { background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%); color: white; }
+        .view-btn { background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); color: white; }
+        .edit-btn { background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); color: white; }
+        .delete-btn { background: #e53e3e; color: white; }
+        .block-btn { background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); color: white; }
+        .unblock-btn { background: linear-gradient(135deg, #4fd1c5 0%, #319795 100%); color: white; }
+        .resolve-btn { background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); color: white; }
+        .logout-btn { background: none; border: none; font-size: 1.3rem; color: #f56565; cursor: pointer; padding: 8px; }
+        .form-control { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; font-family: 'Poppins', sans-serif; }
+        .submit-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-family: 'Poppins', sans-serif; }
+        .complaint-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; border-left: 5px solid #f6ad55; }
+        .complaint-card.solved { border-left-color: #68d391; }
+        .complaint-status { padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .complaint-status.pending { background: #feebc8; color: #c05621; }
+        .complaint-status.solved { background: #c6f6d5; color: #276749; }
+        .user-detail-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .user-detail-label {
+            width: 140px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .user-detail-value {
+            flex: 1;
+            color: #2d3748;
+            word-break: break-word;
+        }
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+        .permissions-grid label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .admin-section-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+            margin-bottom: 20px !important;
+            padding: 15px !important;
+            background: white !important;
+            border-radius: 10px !important;
+        }
+        .admin-section-header h3 {
+            color: #2d3748;
+            margin: 0;
+        }
+        .filter-options {
+            display: flex !important;
+            gap: 10px !important;
+            flex-wrap: wrap !important;
+        }
+        .filter-options select, .filter-options input {
+            padding: 8px 12px !important;
+            border: 1px solid #ddd !important;
+            border-radius: 8px !important;
+            font-family: 'Poppins', sans-serif !important;
+        }
+        .search-box input {
+            padding: 8px 12px !important;
+            border: 1px solid #ddd !important;
+            border-radius: 8px !important;
+            font-family: 'Poppins', sans-serif !important;
+            width: 200px !important;
+        }
+        .info-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            margin-bottom: 8px !important;
+            color: #4a5568 !important;
+            font-size: 0.9rem !important;
+        }
+        .info-row .label {
+            font-weight: 600 !important;
+            min-width: 150px !important;
+        }
+        .info-row .value {
+            flex: 1 !important;
+            text-align: right !important;
+            word-break: break-all !important;
+        }
+        .admin-card-actions {
+            display: flex !important;
+            gap: 10px !important;
+            flex-wrap: wrap !important;
+            margin-top: 15px !important;
+            padding-top: 15px !important;
+            border-top: 1px solid #e2e8f0 !important;
+        }
+        .analytics-container {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+            gap: 20px !important;
+            margin-top: 20px !important;
+        }
+        .analytics-chart, .analytics-stats {
+            background: white !important;
+            padding: 20px !important;
+            border-radius: 10px !important;
+        }
+        .analytics-chart h4, .analytics-stats h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .settings-container {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            gap: 20px !important;
+        }
+        .settings-card {
+            background: white !important;
+            padding: 20px !important;
+            border-radius: 10px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .settings-card h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        .payment-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 5px solid #4299e1;
+        }
+        .payment-card.approved { border-left-color: #68d391; }
+        .payment-card.pending_verification { border-left-color: #f6ad55; }
+        .payment-card.rejected { border-left-color: #fc8181; }
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .payment-id {
+            font-family: monospace;
+            color: #718096;
+        }
+        .payment-status {
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .payment-status.approved { background: #c6f6d5; color: #276749; }
+        .payment-status.pending_verification { background: #feebc8; color: #c05621; }
+        .payment-status.rejected { background: #fed7d7; color: #c53030; }
+        .payment-details p {
+            margin-bottom: 5px;
+            color: #4a5568;
+        }
+        .no-data, .error-text, .loading-text {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+            font-size: 1.1rem;
+        }
+        .error-text { color: #fc8181; }
+        .no-data { color: #a0aec0; font-style: italic; }
+        .admin-list {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        @media (max-width: 768px) {
+            #adminPanel .admin-tabs { top: 65px !important; padding: 8px 12px !important; }
+            #adminPanel .admin-content { height: calc(100vh - 180px) !important; padding: 15px !important; }
+            #adminPanel .admin-tab { padding: 8px 15px !important; font-size: 12px !important; }
+            .user-detail-label { width: 110px !important; }
+            .permissions-grid { grid-template-columns: 1fr !important; }
+            .dashboard-cards { grid-template-columns: 1fr !important; }
+            .analytics-container { grid-template-columns: 1fr !important; }
+            .settings-container { grid-template-columns: 1fr !important; }
+            .info-row { flex-direction: column !important; align-items: flex-start !important; }
+            .info-row .value { text-align: left !important; }
+            .search-box input { width: 100% !important; }
+            .admin-card-actions { flex-direction: column !important; }
+            .admin-card-actions .action-btn { width: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="appContainer" class="container">
+        <div id="adminLoginScreen" class="screen form-screen" style="display: none;">
+            <div class="form-header">
+                <h2>Admin Login</h2>
+            </div>
+            <form id="adminLoginForm" class="registration-form">
+                <div class="form-group">
+                    <label for="adminEmail"><i class="fas fa-envelope"></i> Admin Email</label>
+                    <input type="email" id="adminEmail" placeholder="Enter admin email" required>
+                </div>
+                <div class="form-group password-group">
+                    <label for="adminPassword"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter password" required>
+                    <button type="button" class="password-toggle-btn" data-target="adminPassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <button type="submit" class="submit-btn"><i class="fas fa-sign-in-alt"></i> Admin Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+    <script>
+    // ============================================
+    // SECURITY HARDENED ADMIN PANEL
+    // All features preserved - No innerHTML used
+    // ============================================
+
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBNvo3dPEawWjscZ5Jv8ksJnO8poC3xbIE",
+        authDomain: "service-hub-4a077.firebaseapp.com",
+        databaseURL: "https://service-hub-4a077-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "service-hub-4a077",
+        storageBucket: "service-hub-4a077.firebasestorage.app",
+        messagingSenderId: "714272759110",
+        appId: "1:714272759110:web:f8728de4d5b6096c70d947",
+        measurementId: "G-Y23D9GBGM5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
+
+    // ============================================
+    // SECURITY HELPER FUNCTIONS
+    // ============================================
+    function sanitizeText(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.textContent;
+    }
+
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validatePassword(password) {
+        return password && password.length >= 8;
+    }
+
+    function validateUPIId(upiId) {
+        return /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/.test(upiId);
+    }
+
+    // Helper: Create icon element
+    function createIcon(className) {
+        const icon = document.createElement('i');
+        icon.className = className;
+        return icon;
+    }
+
+    // Helper: Create button with icon and text
+    function createActionButton(iconClass, text, className, clickHandler) {
+        const btn = document.createElement('button');
+        btn.className = 'action-btn ' + (className || '');
+        const icon = createIcon(iconClass);
+        btn.appendChild(icon);
+        btn.appendChild(document.createTextNode(' ' + text));
+        if (clickHandler) btn.addEventListener('click', clickHandler);
+        return btn;
+    }
+
+    // ============================================
+    // PASSWORD TOGGLE FUNCTIONALITY
+    // ============================================
+    function setupPasswordToggles() {
+        document.querySelectorAll('.password-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var targetId = this.dataset.target;
+                var input = document.getElementById(targetId);
+                if (!input) return;
+                
+                var icon = this.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            });
+        });
+    }
+
+    let isAdminLoggedIn = false;
+    let upiPayment = { upiid: "skbuilddecor.goa-1@okhdfcbank", defaultAmount: 5 };
+    let defaultServiceFee = 5;
+    let currentAdminEmail = null;
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = typeof message === 'string' ? message : String(message);
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function getStatusText(status) {
+        const statusMap = {
+            'pending': 'Pending', 'submitted': 'Submitted', 'accepted': 'Accepted',
+            'completed': 'Completed', 'cancelled': 'Cancelled', 'rejected': 'Rejected',
+            'payment_pending': 'Payment Review', 'pending_verification': 'Pending Verification',
+            'approved': 'Approved', 'verified': 'Approved', 'active': 'Active', 'blocked': 'Blocked',
+            'solved': 'Solved'
+        };
+        return statusMap[status] || status;
+    }
+
+    // ============================================
+    // NOTIFICATION HELPER
+    // ============================================
+    async function sendNotification(userId, type, data = {}) {
+        try {
+            const notification = {
+                userId, type, data: JSON.parse(JSON.stringify(data)),
+                timestamp: new Date().toISOString(), read: false
+            };
+            const notificationId = 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            await database.ref('notifications/' + userId + '/' + notificationId).set(notification);
+        } catch (error) {
+            console.error('Error sending notification:', error);
+        }
+    }
+
+    // ============================================
+    // LOAD DEFAULTS
+    // ============================================
+    async function loadDefaultFeeFromFirebase() {
+        const snapshot = await database.ref('admin/defaultFee').once('value');
+        if (snapshot.exists()) {
+            defaultServiceFee = snapshot.val();
+            upiPayment.defaultAmount = defaultServiceFee;
+        } else {
+            await database.ref('admin/defaultFee').set(5);
+        }
+    }
+    loadDefaultFeeFromFirebase();
+
+    async function loadUPIId() {
+        const snapshot = await database.ref('admin/upiId').once('value');
+        if (snapshot.exists()) {
+            upiPayment.upiid = snapshot.val();
+        } else {
+            await database.ref('admin/upiId').set(upiPayment.upiid);
+        }
+    }
+    loadUPIId();
+
+    // ============================================
+    // SECURE ADMIN LOGIN
+    // ============================================
+    document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value;
+
+        if (!email || !password) {
+            showToast('Please enter email and password');
+            return;
+        }
+        if (!validateEmail(email)) {
+            showToast('Please enter a valid email address');
+            return;
+        }
+
+        try {
+            const adminEmailsSnapshot = await database.ref('adminEmails').once('value');
+            let adminData = null;
+            let adminRole = null;
+            let adminUid = null;
+
+            if (adminEmailsSnapshot.exists()) {
+                const adminEmails = adminEmailsSnapshot.val();
+                for (const [key, admin] of Object.entries(adminEmails)) {
+                    if (admin.email === email && admin.status !== 'blocked') {
+                        adminData = admin;
+                        adminRole = admin.role || 'super';
+                        adminUid = admin.uid;
+                        break;
+                    }
+                }
+            }
+
+            if (!adminData) {
+                const subAdminsSnapshot = await database.ref('subAdmins').once('value');
+                if (subAdminsSnapshot.exists()) {
+                    const subAdmins = subAdminsSnapshot.val();
+                    for (const [key, admin] of Object.entries(subAdmins)) {
+                        if (admin.email === email && admin.status !== 'blocked') {
+                            adminData = admin;
+                            adminRole = 'sub';
+                            adminUid = admin.uid;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!adminData) {
+                showToast('Invalid admin credentials');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const firebaseUser = userCredential.user;
+
+                if (!firebaseUser.emailVerified) {
+                    showToast('Please verify your email before accessing admin panel');
+                    await auth.signOut();
+                    return;
+                }
+
+                if (adminUid && adminUid !== firebaseUser.uid) {
+                    showToast('Security verification failed. Please contact support.');
+                    await auth.signOut();
+                    return;
+                }
+
+                if (!adminUid) {
+                    if (adminRole === 'super') {
+                        const snapshot = await database.ref('adminEmails').orderByChild('email').equalTo(email).once('value');
+                        snapshot.forEach(child => {
+                            child.ref.update({ uid: firebaseUser.uid });
+                        });
+                    } else {
+                        const snapshot = await database.ref('subAdmins').orderByChild('email').equalTo(email).once('value');
+                        snapshot.forEach(child => {
+                            child.ref.update({ uid: firebaseUser.uid });
+                        });
+                    }
+                }
+
+                sessionStorage.setItem('adminSession', 'true');
+                sessionStorage.setItem('adminRole', adminRole);
+                sessionStorage.setItem('adminEmail', email);
+                sessionStorage.setItem('adminUid', firebaseUser.uid);
+                sessionStorage.setItem('adminLoginTime', Date.now().toString());
+                currentAdminEmail = email;
+
+                if (adminRole === 'sub' && adminData.permissions) {
+                    sessionStorage.setItem('subAdminPermissions', JSON.stringify(adminData.permissions));
+                }
+
+                showToast('Welcome ' + (adminRole === 'super' ? 'Super Admin' : 'Sub Admin') + '!');
+                isAdminLoggedIn = true;
+                document.getElementById('adminLoginScreen').style.display = 'none';
+                showAdminPanel();
+
+            } catch (authError) {
+                console.error('Auth error:', authError);
+                if (authError.code === 'auth/wrong-password') {
+                    showToast('Invalid password');
+                } else if (authError.code === 'auth/user-not-found') {
+                    showToast('Admin user not found in authentication.');
+                } else if (authError.code === 'auth/too-many-requests') {
+                    showToast('Too many attempts. Please try again later.');
+                } else {
+                    showToast('Authentication failed: ' + (authError.message || 'Please try again'));
+                }
+            }
+        } catch (error) {
+            console.error('Admin login error:', error);
+            showToast('Login failed. Please try again.');
+        }
+    });
+
+    // ============================================
+    // BUILD TAB CONTENT - SAFE (No innerHTML)
+    // ============================================
+    function buildDashboardTab() {
+        const tab = document.createElement('div');
+        tab.id = 'dashboardTab';
+        tab.className = 'admin-tab-content active';
+        tab.style.display = 'block';
+
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'dashboard-cards';
+
+        const cardData = [
+            { icon: 'fa-users', label: 'Total Users', id: 'totalUsersCount' },
+            { icon: 'fa-briefcase', label: 'Service Providers', id: 'totalProvidersCount' },
+            { icon: 'fa-user', label: 'Clients', id: 'totalClientsCount' },
+            { icon: 'fa-rupee-sign', label: 'Total Revenue', id: 'totalRevenue' }
+        ];
+
+        cardData.forEach(data => {
+            const card = document.createElement('div');
+            card.className = 'dashboard-card';
+            const icon = createIcon('fas ' + data.icon);
+            card.appendChild(icon);
+            const h3 = document.createElement('h3');
+            h3.textContent = data.label;
+            card.appendChild(h3);
+            const p = document.createElement('p');
+            p.id = data.id;
+            p.textContent = '0';
+            card.appendChild(p);
+            cardsContainer.appendChild(card);
+        });
+        tab.appendChild(cardsContainer);
+
+        const analyticsContainer = document.createElement('div');
+        analyticsContainer.className = 'analytics-container';
+
+        const chartDiv = document.createElement('div');
+        chartDiv.className = 'analytics-chart';
+        const chartH4 = document.createElement('h4');
+        chartH4.textContent = 'Recent Transactions';
+        chartDiv.appendChild(chartH4);
+        const recentDiv = document.createElement('div');
+        recentDiv.id = 'recentTransactions';
+        recentDiv.textContent = 'Loading...';
+        chartDiv.appendChild(recentDiv);
+        analyticsContainer.appendChild(chartDiv);
+
+        const statsDiv = document.createElement('div');
+        statsDiv.className = 'analytics-stats';
+        const statsH4 = document.createElement('h4');
+        statsH4.textContent = 'Payment Statistics';
+        statsDiv.appendChild(statsH4);
+        const statsContent = document.createElement('div');
+        statsContent.id = 'paymentStats';
+        statsContent.textContent = 'Loading...';
+        statsDiv.appendChild(statsContent);
+        analyticsContainer.appendChild(statsDiv);
+
+        tab.appendChild(analyticsContainer);
+        return tab;
+    }
+
+    function buildUsersTab() {
+        const tab = document.createElement('div');
+        tab.id = 'usersTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Manage Users';
+        header.appendChild(h3);
+        const searchBox = document.createElement('div');
+        searchBox.className = 'search-box';
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'userSearch';
+        searchInput.placeholder = 'Search users by name, mobile, email...';
+        searchBox.appendChild(searchInput);
+        header.appendChild(searchBox);
+        tab.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'admin-list';
+        list.id = 'usersList';
+        list.textContent = 'Loading users...';
+        tab.appendChild(list);
+        return tab;
+    }
+
+    function buildPaymentsTab() {
+        const tab = document.createElement('div');
+        tab.id = 'paymentsTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Payment Management';
+        header.appendChild(h3);
+        const filters = document.createElement('div');
+        filters.className = 'filter-options';
+        const select = document.createElement('select');
+        select.id = 'paymentFilter';
+        const options = [
+            { value: 'all', text: 'All Payments' },
+            { value: 'pending_verification', text: 'Pending Verifications' },
+            { value: 'approved', text: 'Approved' },
+            { value: 'rejected', text: 'Rejected' }
+        ];
+        options.forEach(opt => {
+            const op = document.createElement('option');
+            op.value = opt.value;
+            op.textContent = opt.text;
+            select.appendChild(op);
+        });
+        filters.appendChild(select);
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'paymentSearch';
+        searchInput.placeholder = 'Search by order/transaction ID...';
+        filters.appendChild(searchInput);
+        header.appendChild(filters);
+        tab.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'admin-list';
+        list.id = 'paymentsList';
+        list.textContent = 'Loading payments...';
+        tab.appendChild(list);
+        return tab;
+    }
+
+    function buildBookingsTab() {
+        const tab = document.createElement('div');
+        tab.id = 'bookingsTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'All Bookings';
+        header.appendChild(h3);
+        const filters = document.createElement('div');
+        filters.className = 'filter-options';
+        const select = document.createElement('select');
+        select.id = 'bookingFilter';
+        const options = [
+            { value: 'all', text: 'All Bookings' },
+            { value: 'submitted', text: 'Submitted' },
+            { value: 'accepted', text: 'Accepted' },
+            { value: 'completed', text: 'Completed' },
+            { value: 'cancelled', text: 'Cancelled' }
+        ];
+        options.forEach(opt => {
+            const op = document.createElement('option');
+            op.value = opt.value;
+            op.textContent = opt.text;
+            select.appendChild(op);
+        });
+        filters.appendChild(select);
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'bookingSearch';
+        searchInput.placeholder = 'Search by booking ID or client...';
+        filters.appendChild(searchInput);
+        header.appendChild(filters);
+        tab.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'admin-list';
+        list.id = 'bookingsList';
+        list.textContent = 'Loading bookings...';
+        tab.appendChild(list);
+        return tab;
+    }
+
+    function buildServicesTab() {
+        const tab = document.createElement('div');
+        tab.id = 'servicesTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Manage Services';
+        header.appendChild(h3);
+        const addBtn = document.createElement('button');
+        addBtn.className = 'action-btn';
+        addBtn.id = 'addServiceBtn';
+        addBtn.style.cssText = 'background: #667eea; color: white;';
+        const plusIcon = createIcon('fas fa-plus');
+        addBtn.appendChild(plusIcon);
+        addBtn.appendChild(document.createTextNode(' Add New Service'));
+        header.appendChild(addBtn);
+        tab.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'admin-list';
+        list.id = 'servicesList';
+        list.textContent = 'Loading services...';
+        tab.appendChild(list);
+        return tab;
+    }
+
+    function buildComplaintsTab() {
+        const tab = document.createElement('div');
+        tab.id = 'complaintsTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'User Complaints';
+        header.appendChild(h3);
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'complaintSearch';
+        searchInput.placeholder = 'Search complaints...';
+        searchInput.style.cssText = 'padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; width: 200px;';
+        header.appendChild(searchInput);
+        tab.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'admin-list';
+        list.id = 'complaintsList';
+        list.textContent = 'Loading complaints...';
+        tab.appendChild(list);
+        return tab;
+    }
+
+    function buildSettingsTab() {
+        const tab = document.createElement('div');
+        tab.id = 'settingsTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'System Settings';
+        header.appendChild(h3);
+        tab.appendChild(header);
+
+        const container = document.createElement('div');
+        container.className = 'settings-container';
+
+        // UPI Settings Card
+        const upiCard = document.createElement('div');
+        upiCard.className = 'settings-card';
+        const upiH4 = document.createElement('h4');
+        upiH4.textContent = 'UPI Payment Settings';
+        upiCard.appendChild(upiH4);
+        const upiGroup = document.createElement('div');
+        upiGroup.className = 'form-group';
+        const upiLabel = document.createElement('label');
+        upiLabel.textContent = 'UPI ID';
+        upiGroup.appendChild(upiLabel);
+        const upiInput = document.createElement('input');
+        upiInput.type = 'text';
+        upiInput.id = 'adminUpiId';
+        upiInput.className = 'form-control';
+        upiInput.value = upiPayment.upiid;
+        upiGroup.appendChild(upiInput);
+        upiCard.appendChild(upiGroup);
+        const upiBtn = document.createElement('button');
+        upiBtn.className = 'action-btn';
+        upiBtn.id = 'updateUpiBtn';
+        upiBtn.style.cssText = 'background: #667eea; color: white;';
+        upiBtn.textContent = 'Update UPI ID';
+        upiCard.appendChild(upiBtn);
+        container.appendChild(upiCard);
+
+        // Fee Settings Card
+        const feeCard = document.createElement('div');
+        feeCard.className = 'settings-card';
+        const feeH4 = document.createElement('h4');
+        feeH4.textContent = 'Service Fee Settings';
+        feeCard.appendChild(feeH4);
+        const feeGroup = document.createElement('div');
+        feeGroup.className = 'form-group';
+        const feeLabel = document.createElement('label');
+        feeLabel.textContent = 'Default Service Fee (₹)';
+        feeGroup.appendChild(feeLabel);
+        const feeInput = document.createElement('input');
+        feeInput.type = 'number';
+        feeInput.id = 'adminDefaultFee';
+        feeInput.className = 'form-control';
+        feeInput.value = defaultServiceFee;
+        feeInput.min = '1';
+        feeInput.step = '1';
+        feeGroup.appendChild(feeInput);
+        feeCard.appendChild(feeGroup);
+        const feeBtn = document.createElement('button');
+        feeBtn.className = 'action-btn';
+        feeBtn.id = 'updateDefaultFeeBtn';
+        feeBtn.style.cssText = 'background: #667eea; color: white; margin-top: 10px;';
+        feeBtn.textContent = 'Update Fee';
+        feeCard.appendChild(feeBtn);
+        container.appendChild(feeCard);
+
+        // Admin Settings Card
+        const adminCard = document.createElement('div');
+        adminCard.className = 'settings-card';
+        const adminH4 = document.createElement('h4');
+        adminH4.textContent = 'Admin Settings';
+        adminCard.appendChild(adminH4);
+        const pwdGroup = document.createElement('div');
+        pwdGroup.className = 'form-group';
+        const pwdLabel = document.createElement('label');
+        pwdLabel.textContent = 'Update Password';
+        pwdGroup.appendChild(pwdLabel);
+        const pwdInput = document.createElement('input');
+        pwdInput.type = 'password';
+        pwdInput.id = 'adminNewPassword';
+        pwdInput.className = 'form-control';
+        pwdInput.placeholder = 'Enter new password (min 8 characters)';
+        pwdGroup.appendChild(pwdInput);
+        adminCard.appendChild(pwdGroup);
+        const pwdBtn = document.createElement('button');
+        pwdBtn.className = 'action-btn';
+        pwdBtn.id = 'updateAdminPasswordBtn';
+        pwdBtn.style.cssText = 'background: #667eea; color: white;';
+        pwdBtn.textContent = 'Update Password';
+        adminCard.appendChild(pwdBtn);
+        container.appendChild(adminCard);
+
+        tab.appendChild(container);
+        return tab;
+    }
+
+    function buildSubAdminsTab() {
+        const tab = document.createElement('div');
+        tab.id = 'subAdminsTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Manage Sub Admins';
+        header.appendChild(h3);
+        const addBtn = document.createElement('button');
+        addBtn.className = 'action-btn';
+        addBtn.id = 'addSubAdminBtn';
+        addBtn.style.cssText = 'background: #667eea; color: white;';
+        const plusIcon = createIcon('fas fa-plus');
+        addBtn.appendChild(plusIcon);
+        addBtn.appendChild(document.createTextNode(' Add Sub Admin'));
+        header.appendChild(addBtn);
+        tab.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'admin-list';
+        list.id = 'subAdminsList';
+        list.textContent = 'Loading sub admins...';
+        tab.appendChild(list);
+        return tab;
+    }
+
+    function buildReportsTab() {
+        const tab = document.createElement('div');
+        tab.id = 'reportsTab';
+        tab.className = 'admin-tab-content';
+        tab.style.display = 'none';
+
+        const header = document.createElement('div');
+        header.className = 'admin-section-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Generate Reports';
+        header.appendChild(h3);
+        const filters = document.createElement('div');
+        filters.className = 'filter-options';
+
+        const dailyBtn = document.createElement('button');
+        dailyBtn.className = 'action-btn';
+        dailyBtn.id = 'dailyReportBtn';
+        dailyBtn.style.cssText = 'background: #667eea; color: white;';
+        dailyBtn.textContent = 'Daily Report';
+        filters.appendChild(dailyBtn);
+
+        const weeklyBtn = document.createElement('button');
+        weeklyBtn.className = 'action-btn';
+        weeklyBtn.id = 'weeklyReportBtn';
+        weeklyBtn.style.cssText = 'background: #667eea; color: white;';
+        weeklyBtn.textContent = 'Weekly Report';
+        filters.appendChild(weeklyBtn);
+
+        const monthlyBtn = document.createElement('button');
+        monthlyBtn.className = 'action-btn';
+        monthlyBtn.id = 'monthlyReportBtn';
+        monthlyBtn.style.cssText = 'background: #667eea; color: white;';
+        monthlyBtn.textContent = 'Monthly Report';
+        filters.appendChild(monthlyBtn);
+
+        header.appendChild(filters);
+        tab.appendChild(header);
+
+        const reportContainer = document.createElement('div');
+        reportContainer.id = 'reportContainer';
+        reportContainer.style.cssText = 'background: white; padding: 20px; border-radius: 10px;';
+        reportContainer.textContent = 'Select report type to generate';
+        tab.appendChild(reportContainer);
+        return tab;
+    }
+
+    // ============================================
+    // SHOW ADMIN PANEL
+    // ============================================
+    function showAdminPanel() {
+        const sessionToken = sessionStorage.getItem('adminSession');
+        const adminRole = sessionStorage.getItem('adminRole') || 'super';
+        const adminUid = sessionStorage.getItem('adminUid');
+        const adminLoginTime = sessionStorage.getItem('adminLoginTime');
+        const subAdminPermissions = sessionStorage.getItem('subAdminPermissions') ? JSON.parse(sessionStorage.getItem('subAdminPermissions')) : null;
+        currentAdminEmail = sessionStorage.getItem('adminEmail') || 'Administrator';
+
+        if (!sessionToken || !adminUid) {
+            showToast('Invalid admin session. Please login again.');
+            sessionStorage.removeItem('adminSession');
+            sessionStorage.removeItem('adminRole');
+            sessionStorage.removeItem('adminEmail');
+            sessionStorage.removeItem('adminUid');
+            sessionStorage.removeItem('adminLoginTime');
+            sessionStorage.removeItem('subAdminPermissions');
+            document.getElementById('adminLoginScreen').style.display = 'block';
+            return;
+        }
+
+        if (adminLoginTime) {
+            const loginTime = parseInt(adminLoginTime);
+            const now = Date.now();
+            if (now - loginTime > 24 * 60 * 60 * 1000) {
+                showToast('Session expired. Please login again.');
+                sessionStorage.removeItem('adminSession');
+                sessionStorage.removeItem('adminRole');
+                sessionStorage.removeItem('adminEmail');
+                sessionStorage.removeItem('adminUid');
+                sessionStorage.removeItem('adminLoginTime');
+                sessionStorage.removeItem('subAdminPermissions');
+                document.getElementById('adminLoginScreen').style.display = 'block';
+                return;
+            }
+        }
+
+        const existingAdminPanel = document.getElementById('adminPanel');
+        if (existingAdminPanel) existingAdminPanel.remove();
+
+        const adminPanel = document.createElement('div');
+        adminPanel.id = 'adminPanel';
+        adminPanel.className = 'screen main-screen';
+        adminPanel.style.display = 'block';
+
+        // ========== MAIN HEADER ==========
+        const mainHeader = document.createElement('div');
+        mainHeader.className = 'main-header';
+
+        const h2 = document.createElement('h2');
+        h2.textContent = adminRole === 'super' ? 'Super Admin' : 'Sub Admin';
+        mainHeader.appendChild(h2);
+
+        const userInfo = document.createElement('div');
+        userInfo.className = 'user-info';
+
+        const emailSpan = document.createElement('span');
+        emailSpan.style.cssText = 'font-size: 14px; color: #667eea;';
+        emailSpan.textContent = currentAdminEmail;
+        userInfo.appendChild(emailSpan);
+
+        const logoutBtn = document.createElement('button');
+        logoutBtn.className = 'logout-btn';
+        logoutBtn.id = 'adminLogoutBtn';
+        const logoutIcon = createIcon('fas fa-sign-out-alt');
+        logoutBtn.appendChild(logoutIcon);
+        userInfo.appendChild(logoutBtn);
+        mainHeader.appendChild(userInfo);
+        adminPanel.appendChild(mainHeader);
+
+        // ========== TABS ==========
+        const tabsDiv = document.createElement('div');
+        tabsDiv.className = 'admin-tabs';
+
+        let tabs = [];
+        if (adminRole === 'super') {
+            tabs = ['dashboard', 'users', 'payments', 'bookings', 'services', 'complaints', 'settings', 'subAdmins', 'reports'];
+        } else {
+            const permTabs = [];
+            if (subAdminPermissions && subAdminPermissions.canViewDashboard) permTabs.push('dashboard');
+            if (subAdminPermissions && subAdminPermissions.canManageUsers) permTabs.push('users');
+            if (subAdminPermissions && subAdminPermissions.canManagePayments) permTabs.push('payments');
+            if (subAdminPermissions && subAdminPermissions.canManageBookings) permTabs.push('bookings');
+            if (subAdminPermissions && subAdminPermissions.canManageServices) permTabs.push('services');
+            if (subAdminPermissions && subAdminPermissions.canManageComplaints) permTabs.push('complaints');
+            if (subAdminPermissions && subAdminPermissions.canAccessSettings) permTabs.push('settings');
+            permTabs.push('reports');
+            tabs = permTabs;
+        }
+
+        tabs.forEach((tab, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'admin-tab' + (index === 0 ? ' active' : '');
+            btn.dataset.tab = tab;
+            btn.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+            tabsDiv.appendChild(btn);
+        });
+        adminPanel.appendChild(tabsDiv);
+
+        // ========== CONTENT ==========
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'admin-content';
+
+        // Build all tab contents
+        const tabBuilders = {
+            'dashboard': buildDashboardTab,
+            'users': buildUsersTab,
+            'payments': buildPaymentsTab,
+            'bookings': buildBookingsTab,
+            'services': buildServicesTab,
+            'complaints': buildComplaintsTab,
+            'settings': buildSettingsTab,
+            'subAdmins': buildSubAdminsTab,
+            'reports': buildReportsTab
+        };
+
+        // Only add tabs that exist in the tabs array
+        tabs.forEach(tabName => {
+            if (tabBuilders[tabName]) {
+                const tabContent = tabBuilders[tabName]();
+                // If it's not the first tab, hide it
+                if (tabName !== tabs[0]) {
+                    tabContent.classList.remove('active');
+                    tabContent.style.display = 'none';
+                }
+                contentDiv.appendChild(tabContent);
+            }
+        });
+
+        adminPanel.appendChild(contentDiv);
+        document.getElementById('appContainer').appendChild(adminPanel);
+
+        // ========== SETUP TAB SWITCHING ==========
+        tabsDiv.querySelectorAll('.admin-tab').forEach((btn) => {
+            btn.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                tabsDiv.querySelectorAll('.admin-tab').forEach((t) => {
+                    t.classList.remove('active');
+                });
+                this.classList.add('active');
+                contentDiv.querySelectorAll('.admin-tab-content').forEach((c) => {
+                    c.style.display = 'none';
+                    c.classList.remove('active');
+                });
+                const target = document.getElementById(tabName + 'Tab');
+                if (target) {
+                    target.style.display = 'block';
+                    target.classList.add('active');
+                }
+            });
+        });
+
+        // ========== LOGOUT ==========
+        logoutBtn.addEventListener('click', function() {
+            sessionStorage.removeItem('adminSession');
+            sessionStorage.removeItem('adminRole');
+            sessionStorage.removeItem('adminEmail');
+            sessionStorage.removeItem('adminUid');
+            sessionStorage.removeItem('adminLoginTime');
+            sessionStorage.removeItem('subAdminPermissions');
+            isAdminLoggedIn = false;
+            auth.signOut().catch(() => {});
+            adminPanel.remove();
+            document.getElementById('adminLoginScreen').style.display = 'block';
+            document.getElementById('adminEmail').value = '';
+            document.getElementById('adminPassword').value = '';
+            showToast('Logged out successfully');
+        });
+
+        // ========== SETTINGS EVENT LISTENERS ==========
+        const upiBtn = document.getElementById('updateUpiBtn');
+        if (upiBtn) {
+            upiBtn.addEventListener('click', async function() {
+                const newUpiId = document.getElementById('adminUpiId').value.trim();
+                if (!newUpiId) { showToast('Please enter UPI ID'); return; }
+                if (!validateUPIId(newUpiId)) { showToast('Invalid UPI ID format'); return; }
+                try {
+                    await database.ref('admin/upiId').set(newUpiId);
+                    upiPayment.upiid = newUpiId;
+                    showToast('UPI ID updated successfully!');
+                } catch (error) { showToast('Failed to update UPI ID'); }
+            });
+        }
+
+        const feeBtn = document.getElementById('updateDefaultFeeBtn');
+        if (feeBtn) {
+            feeBtn.addEventListener('click', async function() {
+                const newFee = document.getElementById('adminDefaultFee').value;
+                if (!newFee || newFee < 1) { showToast('Please enter a valid fee amount'); return; }
+                try {
+                    await database.ref('admin/defaultFee').set(parseInt(newFee));
+                    defaultServiceFee = parseInt(newFee);
+                    showToast('Service fee updated successfully!');
+                } catch (error) { showToast('Failed to update service fee'); }
+            });
+        }
+
+        const pwdBtn = document.getElementById('updateAdminPasswordBtn');
+        if (pwdBtn) {
+            pwdBtn.addEventListener('click', async function() {
+                const newPassword = document.getElementById('adminNewPassword').value.trim();
+                if (!newPassword) { showToast('Please enter new password'); return; }
+                if (!validatePassword(newPassword)) { showToast('Password must be at least 8 characters'); return; }
+                try {
+                    const adminEmail = sessionStorage.getItem('adminEmail');
+                    if (adminEmail) {
+                        await auth.sendPasswordResetEmail(adminEmail);
+                        showToast('Password reset email sent to ' + adminEmail);
+                        document.getElementById('adminNewPassword').value = '';
+                    } else {
+                        showToast('Admin email not found');
+                    }
+                } catch (error) {
+                    console.error('Error updating admin password:', error);
+                    showToast('Failed to update admin password. Please contact support.');
+                }
+            });
+        }
+
+        // ========== ADD SERVICE ==========
+        const addServiceBtn = document.getElementById('addServiceBtn');
+        if (addServiceBtn) {
+            addServiceBtn.addEventListener('click', showAddServiceModal);
+        }
+
+        // ========== ADD SUB ADMIN ==========
+        if (adminRole === 'super') {
+            const addSubAdminBtn = document.getElementById('addSubAdminBtn');
+            if (addSubAdminBtn) {
+                addSubAdminBtn.addEventListener('click', showAddSubAdminModal);
+            }
+        }
+
+        // ========== REPORT BUTTONS ==========
+        const dailyBtn = document.getElementById('dailyReportBtn');
+        const weeklyBtn = document.getElementById('weeklyReportBtn');
+        const monthlyBtn = document.getElementById('monthlyReportBtn');
+        if (dailyBtn) dailyBtn.addEventListener('click', () => generateReport('daily'));
+        if (weeklyBtn) weeklyBtn.addEventListener('click', () => generateReport('weekly'));
+        if (monthlyBtn) monthlyBtn.addEventListener('click', () => generateReport('monthly'));
+
+        // ========== LOAD ALL DATA ==========
+        loadAdminDashboard();
+        loadUsersList();
+        loadPaymentsList();
+        loadBookingsList();
+        loadServicesList();
+        if (adminRole === 'super') loadSubAdminsList();
+        loadComplaintsList();
+    }
+
+    // ============================================
+    // ADMIN DASHBOARD
+    // ============================================
+    async function loadAdminDashboard() {
+        try {
+            const clientsSnapshot = await database.ref('users/clients').once('value');
+            const providersSnapshot = await database.ref('users/providers').once('value');
+            const totalClients = clientsSnapshot.numChildren();
+            const totalProviders = providersSnapshot.numChildren();
+
+            const totalUsersEl = document.getElementById('totalUsersCount');
+            const totalClientsEl = document.getElementById('totalClientsCount');
+            const totalProvidersEl = document.getElementById('totalProvidersCount');
+            if (totalUsersEl) totalUsersEl.textContent = totalClients + totalProviders;
+            if (totalClientsEl) totalClientsEl.textContent = totalClients;
+            if (totalProvidersEl) totalProvidersEl.textContent = totalProviders;
+
+            const paymentsSnapshot = await database.ref('payments').once('value');
+            let totalRevenue = 0;
+            paymentsSnapshot.forEach(child => {
+                const payment = child.val();
+                if (payment.status === 'approved') totalRevenue += payment.amount || 0;
+            });
+            const totalRevenueEl = document.getElementById('totalRevenue');
+            if (totalRevenueEl) totalRevenueEl.textContent = '₹' + totalRevenue;
+
+            const recentTransactions = [];
+            paymentsSnapshot.forEach(child => recentTransactions.push(child.val()));
+            recentTransactions.sort((a, b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
+
+            const recentEl = document.getElementById('recentTransactions');
+            if (recentEl) {
+                while (recentEl.firstChild) recentEl.removeChild(recentEl.firstChild);
+                const recentSlice = recentTransactions.slice(0, 10);
+                if (recentSlice.length === 0) {
+                    const noData = document.createElement('p');
+                    noData.className = 'no-data';
+                    noData.textContent = 'No transactions';
+                    recentEl.appendChild(noData);
+                } else {
+                    recentSlice.forEach(payment => {
+                        const card = document.createElement('div');
+                        card.className = 'payment-card ' + (payment.status || 'pending');
+
+                        const pHeader = document.createElement('div');
+                        pHeader.className = 'payment-header';
+                        const idSpan = document.createElement('span');
+                        idSpan.className = 'payment-id';
+                        idSpan.textContent = 'Order: ' + (payment.id || '').slice(0, 8) + '...';
+                        pHeader.appendChild(idSpan);
+                        const statusSpan = document.createElement('span');
+                        statusSpan.className = 'payment-status ' + (payment.status || 'pending_verification');
+                        statusSpan.textContent = getStatusText(payment.status || 'pending_verification');
+                        pHeader.appendChild(statusSpan);
+                        card.appendChild(pHeader);
+
+                        const details = document.createElement('div');
+                        details.className = 'payment-details';
+                        const fields = [
+                            { label: 'Transaction:', value: payment.transactionId || 'N/A' },
+                            { label: 'Amount:', value: '₹' + payment.amount },
+                            { label: 'User:', value: payment.userId || payment.userEmail },
+                            { label: 'Date:', value: new Date(payment.timestamp || payment.createdAt).toLocaleString() }
+                        ];
+                        if (payment.rejectionReason) {
+                            fields.push({ label: 'Reason:', value: payment.rejectionReason, error: true });
+                        }
+                        fields.forEach(field => {
+                            const p = document.createElement('p');
+                            const strong = document.createElement('strong');
+                            strong.textContent = field.label + ' ';
+                            p.appendChild(strong);
+                            const span = document.createElement('span');
+                            if (field.error) span.style.color = '#e53e3e';
+                            span.textContent = field.value;
+                            p.appendChild(span);
+                            details.appendChild(p);
+                        });
+                        card.appendChild(details);
+                        recentEl.appendChild(card);
+                    });
+                }
+            }
+
+            let pendingCount = 0, approvedCount = 0, rejectedCount = 0;
+            paymentsSnapshot.forEach(child => {
+                const status = child.val().status;
+                if (status === 'pending_verification') pendingCount++;
+                else if (status === 'approved') approvedCount++;
+                else if (status === 'rejected') rejectedCount++;
+            });
+            const statsEl = document.getElementById('paymentStats');
+            if (statsEl) {
+                while (statsEl.firstChild) statsEl.removeChild(statsEl.firstChild);
+                const statsData = [
+                    { label: 'Pending:', value: pendingCount },
+                    { label: 'Approved:', value: approvedCount },
+                    { label: 'Rejected:', value: rejectedCount },
+                    { label: 'Total:', value: pendingCount + approvedCount + rejectedCount }
+                ];
+                statsData.forEach(stat => {
+                    const p = document.createElement('p');
+                    p.textContent = stat.label + ' ' + stat.value;
+                    statsEl.appendChild(p);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading admin dashboard', error);
+        }
+    }
+
+    // ============================================
+    // USERS LIST
+    // ============================================
+    async function loadUsersList() {
+        try {
+            const clientsSnapshot = await database.ref('users/clients').once('value');
+            const providersSnapshot = await database.ref('users/providers').once('value');
+            const usersList = document.getElementById('usersList');
+            while (usersList.firstChild) usersList.removeChild(usersList.firstChild);
+
+            let hasUsers = false;
+            clientsSnapshot.forEach(child => {
+                const user = child.val();
+                const card = createAdminUserCard(user, 'client', child.key);
+                usersList.appendChild(card);
+                hasUsers = true;
+            });
+            providersSnapshot.forEach(child => {
+                const user = child.val();
+                const card = createAdminUserCard(user, 'provider', child.key);
+                usersList.appendChild(card);
+                hasUsers = true;
+            });
+
+            if (!hasUsers) {
+                const noData = document.createElement('p');
+                noData.className = 'no-data';
+                noData.textContent = 'No users found';
+                usersList.appendChild(noData);
+            }
+
+            const searchInput = document.getElementById('userSearch');
+            if (searchInput) {
+                searchInput.removeEventListener('input', usersList._searchHandler);
+                usersList._searchHandler = function(e) {
+                    const term = e.target.value.toLowerCase();
+                    usersList.querySelectorAll('.admin-card').forEach(card => {
+                        card.style.display = card.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+                    });
+                };
+                searchInput.addEventListener('input', usersList._searchHandler);
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            const usersList = document.getElementById('usersList');
+            while (usersList.firstChild) usersList.removeChild(usersList.firstChild);
+            const errorP = document.createElement('p');
+            errorP.className = 'error-text';
+            errorP.textContent = 'Error loading users';
+            usersList.appendChild(errorP);
+        }
+    }
+
+    function createAdminUserCard(user, type, userId) {
+        const status = user.status || 'active';
+        const card = document.createElement('div');
+        card.className = 'admin-card';
+
+        const header = document.createElement('div');
+        header.className = 'admin-card-header';
+
+        const info = document.createElement('div');
+        const h4 = document.createElement('h4');
+        h4.textContent = sanitizeText(user.name || 'Unknown');
+        info.appendChild(h4);
+        const p = document.createElement('p');
+        p.textContent = (type === 'provider' ? 'Service Provider' : 'Client') + ' | ' + sanitizeText(userId);
+        info.appendChild(p);
+        header.appendChild(info);
+
+        const statusDiv = document.createElement('div');
+        statusDiv.style.cssText = 'display: flex; gap: 10px; align-items: center; flex-wrap: wrap;';
+        const verifiedSpan = document.createElement('span');
+        verifiedSpan.className = 'status-badge ' + (user.emailVerified ? 'active' : 'pending');
+        verifiedSpan.textContent = user.emailVerified ? 'Verified' : 'Unverified';
+        statusDiv.appendChild(verifiedSpan);
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'status-badge ' + (status === 'blocked' ? 'blocked' : 'active');
+        statusSpan.textContent = status;
+        statusDiv.appendChild(statusSpan);
+        header.appendChild(statusDiv);
+        card.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'admin-card-body';
+        const fields = [
+            { label: 'Email:', value: user.email || 'Not provided' },
+            { label: 'Mobile:', value: userId },
+            { label: 'Registered:', value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' }
+        ];
+        if (type === 'provider') {
+            fields.push({ label: 'Services:', value: user.services ? user.services.join(', ') : 'None' });
+            fields.push({ label: 'State:', value: user.state || 'Not specified' });
+        }
+        fields.forEach(f => {
+            const row = document.createElement('div');
+            row.className = 'info-row';
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = f.label;
+            const value = document.createElement('span');
+            value.className = 'value';
+            value.textContent = sanitizeText(f.value);
+            row.appendChild(label);
+            row.appendChild(value);
+            body.appendChild(row);
+        });
+        card.appendChild(body);
+
+        const actions = document.createElement('div');
+        actions.className = 'admin-card-actions';
+
+        const viewBtn = createActionButton('fas fa-eye', 'View', 'view-btn', () => adminViewUserDetails(type, userId));
+        actions.appendChild(viewBtn);
+
+        const pwdBtn = createActionButton('fas fa-key', 'Password', 'change-password-btn', () => adminChangeUserPassword(type, userId));
+        pwdBtn.style.cssText = 'background: #4299e1; color: white;';
+        actions.appendChild(pwdBtn);
+
+        const blockBtn = createActionButton(
+            'fas ' + (status === 'blocked' ? 'fa-check' : 'fa-ban'),
+            status === 'blocked' ? 'Unblock' : 'Block',
+            status === 'blocked' ? 'unblock-btn' : 'block-btn',
+            () => adminToggleUserBlock(type, userId, status)
+        );
+        actions.appendChild(blockBtn);
+
+        const deleteBtn = createActionButton('fas fa-trash', 'Delete', 'delete-btn', () => adminDeleteUserPermanently(type, userId));
+        actions.appendChild(deleteBtn);
+
+        card.appendChild(actions);
+        return card;
+    }
+
+    // ============================================
+    // PAYMENTS LIST
+    // ============================================
+    async function loadPaymentsList() {
+        try {
+            const uniquePayments = new Map();
+            const pendingSnapshot = await database.ref('pendingPayments').once('value');
+            pendingSnapshot.forEach(child => {
+                const payment = child.val();
+                if (payment.transactionId) {
+                    if (!uniquePayments.has(child.key)) {
+                        uniquePayments.set(child.key, { id: child.key, source: 'pending', ...payment });
+                    }
+                }
+            });
+            const approvedSnapshot = await database.ref('payments').once('value');
+            approvedSnapshot.forEach(child => {
+                const payment = child.val();
+                if (payment.transactionId) {
+                    if (!uniquePayments.has(child.key)) {
+                        uniquePayments.set(child.key, { id: child.key, source: 'approved', ...payment });
+                    }
+                }
+            });
+
+            const paymentsList = document.getElementById('paymentsList');
+            while (paymentsList.firstChild) paymentsList.removeChild(paymentsList.firstChild);
+
+            if (uniquePayments.size === 0) {
+                const noData = document.createElement('p');
+                noData.className = 'no-data';
+                noData.textContent = 'No payments with transaction ID found';
+                paymentsList.appendChild(noData);
+                return;
+            }
+
+            const allPayments = Array.from(uniquePayments.values());
+            allPayments.sort((a, b) => new Date(b.createdAt || b.timestamp || 0) - new Date(a.createdAt || a.timestamp || 0));
+
+            allPayments.forEach(payment => {
+                const status = payment.status || 'pending_verification';
+                const card = document.createElement('div');
+                card.className = 'admin-card';
+
+                const header = document.createElement('div');
+                header.className = 'admin-card-header';
+
+                const info = document.createElement('div');
+                const h4 = document.createElement('h4');
+                h4.textContent = 'Payment: ' + sanitizeText(payment.id.substring(0, 12)) + '...';
+                info.appendChild(h4);
+                const fields = [
+                    { label: 'Order ID:', value: payment.id || payment.orderId || payment.paymentId },
+                    { label: 'Mobile:', value: payment.userId || payment.userEmail || 'N/A' },
+                    { label: 'Service Fee:', value: '₹' + (payment.amount || 0) },
+                    { label: 'Service:', value: payment.description || payment.metadata?.service || 'N/A' },
+                    { label: 'Transaction ID:', value: payment.transactionId || 'N/A' },
+                    { label: 'Payment Date/Time:', value: new Date(payment.createdAt || payment.timestamp).toLocaleString('en-IN') }
+                ];
+                if (payment.verifiedBy) fields.push({ label: 'Verified By:', value: payment.verifiedBy });
+                if (payment.rejectedBy) fields.push({ label: 'Rejected By:', value: payment.rejectedBy });
+                if (payment.rejectionReason) fields.push({ label: 'Rejection Reason:', value: payment.rejectionReason });
+
+                fields.forEach(f => {
+                    const p = document.createElement('p');
+                    const strong = document.createElement('strong');
+                    strong.textContent = f.label + ' ';
+                    p.appendChild(strong);
+                    const span = document.createElement('span');
+                    if (f.label === 'Rejection Reason:') span.style.color = '#e53e3e';
+                    span.textContent = sanitizeText(f.value);
+                    p.appendChild(span);
+                    info.appendChild(p);
+                });
+                header.appendChild(info);
+
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'status-badge ' + status;
+                statusSpan.textContent = getStatusText(status);
+                header.appendChild(statusSpan);
+                card.appendChild(header);
+
+                const actions = document.createElement('div');
+                actions.className = 'admin-card-actions';
+
+                if (status === 'pending_verification') {
+                    const approveBtn = createActionButton('fas fa-check', 'Approve', 'approve-btn', () => adminApprovePayment(payment.id));
+                    actions.appendChild(approveBtn);
+
+                    const rejectBtn = createActionButton('fas fa-times', 'Reject', 'reject-btn', () => adminRejectPayment(payment.id));
+                    actions.appendChild(rejectBtn);
+                }
+
+                const viewBtn = createActionButton('fas fa-eye', 'View Details', 'view-btn', () => adminViewPaymentDetails(payment.id));
+                actions.appendChild(viewBtn);
+
+                card.appendChild(actions);
+                paymentsList.appendChild(card);
+            });
+
+            const filterSelect = document.getElementById('paymentFilter');
+            if (filterSelect) {
+                filterSelect.removeEventListener('change', paymentsList._filterHandler);
+                paymentsList._filterHandler = function(e) {
+                    const filter = e.target.value;
+                    paymentsList.querySelectorAll('.admin-card').forEach(card => {
+                        const statusEl = card.querySelector('.status-badge');
+                        const status = statusEl ? statusEl.textContent.toLowerCase().replace(/\s+/g, '_') : '';
+                        card.style.display = filter === 'all' || status === filter ? 'block' : 'none';
+                    });
+                };
+                filterSelect.addEventListener('change', paymentsList._filterHandler);
+            }
+            const searchInput = document.getElementById('paymentSearch');
+            if (searchInput) {
+                searchInput.removeEventListener('input', paymentsList._searchHandler);
+                paymentsList._searchHandler = function(e) {
+                    const term = e.target.value.toLowerCase();
+                    paymentsList.querySelectorAll('.admin-card').forEach(card => {
+                        card.style.display = card.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+                    });
+                };
+                searchInput.addEventListener('input', paymentsList._searchHandler);
+            }
+        } catch (error) {
+            console.error('Error loading payments:', error);
+            const paymentsList = document.getElementById('paymentsList');
+            while (paymentsList.firstChild) paymentsList.removeChild(paymentsList.firstChild);
+            const errorP = document.createElement('p');
+            errorP.className = 'error-text';
+            errorP.textContent = 'Error loading payments';
+            paymentsList.appendChild(errorP);
+        }
+    }
+
+    // ============================================
+    // BOOKINGS LIST
+    // ============================================
+    async function loadBookingsList() {
+        try {
+            const snapshot = await database.ref('bookings').once('value');
+            const bookingsList = document.getElementById('bookingsList');
+            while (bookingsList.firstChild) bookingsList.removeChild(bookingsList.firstChild);
+
+            let hasBookings = false;
+            snapshot.forEach(child => {
+                const booking = child.val();
+                const card = document.createElement('div');
+                card.className = 'admin-card';
+
+                const header = document.createElement('div');
+                header.className = 'admin-card-header';
+                const info = document.createElement('div');
+                const h4 = document.createElement('h4');
+                h4.textContent = sanitizeText(booking.service || 'Unknown Service');
+                info.appendChild(h4);
+                const p = document.createElement('p');
+                p.textContent = 'Booking ID: ' + sanitizeText(booking.id || child.key);
+                info.appendChild(p);
+                header.appendChild(info);
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'status-badge ' + (booking.status || 'pending');
+                statusSpan.textContent = getStatusText(booking.status || 'pending');
+                header.appendChild(statusSpan);
+                card.appendChild(header);
+
+                const body = document.createElement('div');
+                body.className = 'admin-card-body';
+                const fields = [
+                    { label: 'Client:', value: (booking.clientName || 'N/A') + ' (' + (booking.clientId || 'N/A') + ')' },
+                    { label: 'Provider:', value: booking.providerName || 'Not assigned' },
+                    { label: 'Payment ID:', value: booking.paymentId || 'N/A' },
+                    { label: 'Transaction ID:', value: booking.transactionId || 'N/A' },
+                    { label: 'Amount:', value: '₹' + (booking.totalAmount || booking.paymentAmount || 0) }
+                ];
+                fields.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = 'info-row';
+                    const label = document.createElement('span');
+                    label.className = 'label';
+                    label.textContent = f.label;
+                    const value = document.createElement('span');
+                    value.className = 'value';
+                    value.textContent = sanitizeText(f.value);
+                    row.appendChild(label);
+                    row.appendChild(value);
+                    body.appendChild(row);
+                });
+                card.appendChild(body);
+
+                const actions = document.createElement('div');
+                actions.className = 'admin-card-actions';
+                const viewBtn = createActionButton('fas fa-eye', 'View Details', 'view-btn', () => adminViewBookingDetails(child.key));
+                actions.appendChild(viewBtn);
+                const deleteBtn = createActionButton('fas fa-trash', 'Delete Booking', 'delete-btn', () => adminDeleteBooking(child.key));
+                actions.appendChild(deleteBtn);
+                card.appendChild(actions);
+                bookingsList.appendChild(card);
+                hasBookings = true;
+            });
+
+            if (!hasBookings) {
+                const noData = document.createElement('p');
+                noData.className = 'no-data';
+                noData.textContent = 'No bookings found';
+                bookingsList.appendChild(noData);
+            }
+
+            const filterSelect = document.getElementById('bookingFilter');
+            if (filterSelect) {
+                filterSelect.removeEventListener('change', bookingsList._filterHandler);
+                bookingsList._filterHandler = function(e) {
+                    const filter = e.target.value;
+                    bookingsList.querySelectorAll('.admin-card').forEach(card => {
+                        const statusEl = card.querySelector('.status-badge');
+                        const status = statusEl ? statusEl.textContent.toLowerCase() : '';
+                        card.style.display = filter === 'all' || status === filter ? 'block' : 'none';
+                    });
+                };
+                filterSelect.addEventListener('change', bookingsList._filterHandler);
+            }
+            const searchInput = document.getElementById('bookingSearch');
+            if (searchInput) {
+                searchInput.removeEventListener('input', bookingsList._searchHandler);
+                bookingsList._searchHandler = function(e) {
+                    const term = e.target.value.toLowerCase();
+                    bookingsList.querySelectorAll('.admin-card').forEach(card => {
+                        card.style.display = card.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+                    });
+                };
+                searchInput.addEventListener('input', bookingsList._searchHandler);
+            }
+        } catch (error) {
+            console.error('Error loading bookings:', error);
+            const bookingsList = document.getElementById('bookingsList');
+            while (bookingsList.firstChild) bookingsList.removeChild(bookingsList.firstChild);
+            const errorP = document.createElement('p');
+            errorP.className = 'error-text';
+            errorP.textContent = 'Error loading bookings';
+            bookingsList.appendChild(errorP);
+        }
+    }
+
+    // ============================================
+    // SERVICES LIST
+    // ============================================
+    async function loadServicesList() {
+        try {
+            const snapshot = await database.ref('services').once('value');
+            const servicesList = document.getElementById('servicesList');
+            while (servicesList.firstChild) servicesList.removeChild(servicesList.firstChild);
+
+            let hasServices = false;
+            snapshot.forEach(child => {
+                const service = child.val();
+                const card = document.createElement('div');
+                card.className = 'admin-card';
+                card.dataset.serviceId = child.key;
+
+                const header = document.createElement('div');
+                header.className = 'admin-card-header';
+                const info = document.createElement('div');
+                const h4 = document.createElement('h4');
+                h4.textContent = sanitizeText(service.name);
+                info.appendChild(h4);
+                const p = document.createElement('p');
+                p.textContent = 'ID: ' + sanitizeText(child.key);
+                info.appendChild(p);
+                header.appendChild(info);
+                header.appendChild(document.createElement('span'));
+                card.appendChild(header);
+
+                const body = document.createElement('div');
+                body.className = 'admin-card-body';
+                const row1 = document.createElement('div');
+                row1.className = 'info-row';
+                const label1 = document.createElement('span');
+                label1.className = 'label';
+                label1.textContent = 'Icon:';
+                const value1 = document.createElement('span');
+                value1.className = 'value';
+                const iconSpan = document.createElement('i');
+                iconSpan.className = service.icon || 'fas fa-tools';
+                value1.appendChild(iconSpan);
+                value1.appendChild(document.createTextNode(' ' + sanitizeText(service.icon || '')));
+                row1.appendChild(label1);
+                row1.appendChild(value1);
+                body.appendChild(row1);
+                const row2 = document.createElement('div');
+                row2.className = 'info-row';
+                const label2 = document.createElement('span');
+                label2.className = 'label';
+                label2.textContent = 'Description:';
+                const value2 = document.createElement('span');
+                value2.className = 'value';
+                value2.textContent = sanitizeText(service.description || '');
+                row2.appendChild(label2);
+                row2.appendChild(value2);
+                body.appendChild(row2);
+                card.appendChild(body);
+
+                const actions = document.createElement('div');
+                actions.className = 'admin-card-actions';
+                const editBtn = createActionButton('fas fa-edit', 'Edit', 'edit-btn', () => adminEditService(child.key));
+                actions.appendChild(editBtn);
+                const deleteBtn = createActionButton('fas fa-trash', 'Delete', 'delete-btn', () => adminDeleteService(child.key));
+                actions.appendChild(deleteBtn);
+                card.appendChild(actions);
+                servicesList.appendChild(card);
+                hasServices = true;
+            });
+
+            if (!hasServices) {
+                const noData = document.createElement('p');
+                noData.className = 'no-data';
+                noData.textContent = 'No services found';
+                servicesList.appendChild(noData);
+            }
+        } catch (error) {
+            console.error('Error loading services:', error);
+            const servicesList = document.getElementById('servicesList');
+            while (servicesList.firstChild) servicesList.removeChild(servicesList.firstChild);
+            const errorP = document.createElement('p');
+            errorP.className = 'error-text';
+            errorP.textContent = 'Error loading services';
+            servicesList.appendChild(errorP);
+        }
+    }
+
+    // ============================================
+    // COMPLAINTS LIST
+    // ============================================
+    async function loadComplaintsList() {
+        try {
+            const snapshot = await database.ref('complaints').once('value');
+            const complaintsList = document.getElementById('complaintsList');
+            while (complaintsList.firstChild) complaintsList.removeChild(complaintsList.firstChild);
+
+            if (!snapshot.exists()) {
+                const noData = document.createElement('p');
+                noData.className = 'no-data';
+                noData.textContent = 'No complaints found';
+                complaintsList.appendChild(noData);
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const complaint = child.val();
+                const card = document.createElement('div');
+                card.className = 'complaint-card ' + (complaint.status || 'pending');
+                card.dataset.id = child.key;
+
+                const header = document.createElement('div');
+                header.className = 'complaint-header';
+                header.style.cssText = 'display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;';
+                const info = document.createElement('div');
+                const title = document.createElement('span');
+                title.className = 'complaint-title';
+                title.style.cssText = 'font-weight: 600; color: #2d3748; font-size: 1.1rem;';
+                title.textContent = sanitizeText(complaint.subject);
+                info.appendChild(title);
+                const meta = document.createElement('div');
+                meta.className = 'complaint-meta';
+                meta.style.cssText = 'display: flex; gap: 15px; color: #718096; font-size: 0.85rem; margin-top: 5px;';
+                const userSpan = document.createElement('span');
+                const userIcon = createIcon('fas fa-user');
+                userSpan.appendChild(userIcon);
+                userSpan.appendChild(document.createTextNode(' ' + sanitizeText(complaint.userName || 'Unknown') + ' (' + sanitizeText(complaint.userId || 'N/A') + ')'));
+                meta.appendChild(userSpan);
+                const dateSpan = document.createElement('span');
+                const dateIcon = createIcon('fas fa-calendar');
+                dateSpan.appendChild(dateIcon);
+                dateSpan.appendChild(document.createTextNode(' ' + (complaint.createdAt ? new Date(complaint.createdAt).toLocaleString() : 'N/A')));
+                meta.appendChild(dateSpan);
+                info.appendChild(meta);
+                header.appendChild(info);
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'complaint-status ' + (complaint.status || 'pending');
+                statusSpan.textContent = complaint.status || 'pending';
+                header.appendChild(statusSpan);
+                card.appendChild(header);
+
+                const body = document.createElement('div');
+                body.className = 'complaint-body';
+                const desc = document.createElement('p');
+                desc.className = 'complaint-description';
+                desc.style.cssText = 'color: #4a5568; margin: 10px 0; line-height: 1.6;';
+                desc.textContent = sanitizeText(complaint.description);
+                body.appendChild(desc);
+                if (complaint.screenshot) {
+                    const img = document.createElement('img');
+                    img.src = complaint.screenshot;
+                    img.className = 'complaint-image';
+                    img.style.cssText = 'max-width: 100%; max-height: 150px; border-radius: 8px; margin: 10px 0; cursor: pointer;';
+                    img.addEventListener('click', () => window.open(img.src));
+                    body.appendChild(img);
+                }
+                card.appendChild(body);
+
+                const actions = document.createElement('div');
+                actions.className = 'complaint-actions';
+                actions.style.cssText = 'display: flex; gap: 10px; margin-top: 15px;';
+                if (complaint.status === 'pending') {
+                    const resolveBtn = createActionButton('fas fa-check', 'Mark as Solved', 'resolve-btn', () => adminResolveComplaint(child.key));
+                    actions.appendChild(resolveBtn);
+                }
+                const deleteBtn = createActionButton('fas fa-trash', 'Delete', 'delete-btn', () => adminDeleteComplaint(child.key));
+                actions.appendChild(deleteBtn);
+                card.appendChild(actions);
+                complaintsList.appendChild(card);
+            });
+
+            const searchInput = document.getElementById('complaintSearch');
+            if (searchInput) {
+                searchInput.removeEventListener('input', complaintsList._searchHandler);
+                complaintsList._searchHandler = function(e) {
+                    const term = e.target.value.toLowerCase();
+                    complaintsList.querySelectorAll('.complaint-card').forEach(card => {
+                        card.style.display = card.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+                    });
+                };
+                searchInput.addEventListener('input', complaintsList._searchHandler);
+            }
+        } catch (error) {
+            console.error('Error loading complaints:', error);
+            const complaintsList = document.getElementById('complaintsList');
+            while (complaintsList.firstChild) complaintsList.removeChild(complaintsList.firstChild);
+            const errorP = document.createElement('p');
+            errorP.className = 'error-text';
+            errorP.textContent = 'Error loading complaints';
+            complaintsList.appendChild(errorP);
+        }
+    }
+
+    // ============================================
+    // SUB ADMINS LIST
+    // ============================================
+    async function loadSubAdminsList() {
+        try {
+            const snapshot = await database.ref('subAdmins').once('value');
+            const subAdminsList = document.getElementById('subAdminsList');
+            while (subAdminsList.firstChild) subAdminsList.removeChild(subAdminsList.firstChild);
+
+            let hasSubAdmins = false;
+            snapshot.forEach(child => {
+                const subAdmin = child.val();
+                const card = document.createElement('div');
+                card.className = 'admin-card';
+
+                const header = document.createElement('div');
+                header.className = 'admin-card-header';
+                const info = document.createElement('div');
+                const h4 = document.createElement('h4');
+                h4.textContent = sanitizeText(subAdmin.username || subAdmin.email || 'Unknown');
+                info.appendChild(h4);
+                const p = document.createElement('p');
+                p.textContent = 'ID: ' + sanitizeText(child.key);
+                info.appendChild(p);
+                header.appendChild(info);
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'status-badge ' + (subAdmin.status || 'active');
+                statusSpan.textContent = subAdmin.status || 'active';
+                header.appendChild(statusSpan);
+                card.appendChild(header);
+
+                const body = document.createElement('div');
+                body.className = 'admin-card-body';
+                const fields = [
+                    { label: 'Email:', value: subAdmin.email || 'N/A' },
+                    { label: 'Created:', value: subAdmin.createdAt ? new Date(subAdmin.createdAt).toLocaleDateString() : 'N/A' }
+                ];
+                if (subAdmin.permissions) {
+                    const permList = Object.entries(subAdmin.permissions)
+                        .filter(([k, v]) => v === true)
+                        .map(([k]) => k.replace('can', ''))
+                        .join(', ');
+                    fields.push({ label: 'Permissions:', value: permList || 'None' });
+                }
+                fields.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = 'info-row';
+                    const label = document.createElement('span');
+                    label.className = 'label';
+                    label.textContent = f.label;
+                    const value = document.createElement('span');
+                    value.className = 'value';
+                    value.textContent = sanitizeText(f.value);
+                    row.appendChild(label);
+                    row.appendChild(value);
+                    body.appendChild(row);
+                });
+                card.appendChild(body);
+
+                const actions = document.createElement('div');
+                actions.className = 'admin-card-actions';
+                const editBtn = createActionButton('fas fa-edit', 'Edit', 'edit-btn', () => adminEditSubAdmin(child.key));
+                actions.appendChild(editBtn);
+
+                if (subAdmin.status === 'active') {
+                    const blockBtn = createActionButton('fas fa-ban', 'Block', 'block-btn', () => adminToggleSubAdminStatus(child.key, 'blocked'));
+                    actions.appendChild(blockBtn);
+                } else {
+                    const unblockBtn = createActionButton('fas fa-check', 'Activate', 'unblock-btn', () => adminToggleSubAdminStatus(child.key, 'active'));
+                    actions.appendChild(unblockBtn);
+                }
+
+                const deleteBtn = createActionButton('fas fa-trash', 'Delete', 'delete-btn', () => adminDeleteSubAdmin(child.key));
+                actions.appendChild(deleteBtn);
+
+                card.appendChild(actions);
+                subAdminsList.appendChild(card);
+                hasSubAdmins = true;
+            });
+
+            if (!hasSubAdmins) {
+                const noData = document.createElement('p');
+                noData.className = 'no-data';
+                noData.textContent = 'No sub admins found';
+                subAdminsList.appendChild(noData);
+            }
+        } catch (error) {
+            console.error('Error loading sub admins:', error);
+            const subAdminsList = document.getElementById('subAdminsList');
+            while (subAdminsList.firstChild) subAdminsList.removeChild(subAdminsList.firstChild);
+            const errorP = document.createElement('p');
+            errorP.className = 'error-text';
+            errorP.textContent = 'Error loading sub admins';
+            subAdminsList.appendChild(errorP);
+        }
+    }
+
+    // ============================================
+    // REPORTS
+    // ============================================
+    async function generateReport(type) {
+        const reportContainer = document.getElementById('reportContainer');
+        while (reportContainer.firstChild) reportContainer.removeChild(reportContainer.firstChild);
+
+        const loading = document.createElement('p');
+        loading.textContent = 'Generating report...';
+        reportContainer.appendChild(loading);
+
+        try {
+            const paymentsSnapshot = await database.ref('payments').once('value');
+            const bookingsSnapshot = await database.ref('bookings').once('value');
+            const now = new Date();
+            let startDate;
+            if (type === 'daily') { startDate = new Date(now.setHours(0, 0, 0, 0)); } else if (type === 'weekly') { startDate = new Date(now.setDate(now.getDate() - 7)); } else { startDate = new Date(now.setMonth(now.getMonth() - 1)); }
+
+            let totalPayments = 0,
+                approvedPayments = 0,
+                totalBookings = 0;
+            paymentsSnapshot.forEach(child => {
+                const p = child.val();
+                if (p.transactionId && new Date(p.createdAt) >= startDate) {
+                    totalPayments += p.amount || 0;
+                    if (p.status === 'approved') approvedPayments += p.amount || 0;
+                }
+            });
+            bookingsSnapshot.forEach(child => {
+                const b = child.val();
+                if (new Date(b.createdAt) >= startDate) totalBookings++;
+            });
+
+            while (reportContainer.firstChild) reportContainer.removeChild(reportContainer.firstChild);
+
+            const container = document.createElement('div');
+            container.style.cssText = 'background: white; padding: 20px; border-radius: 10px;';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = type.toUpperCase() + ' Report';
+            container.appendChild(h3);
+
+            const p1 = document.createElement('p');
+            p1.textContent = 'Period: ' + startDate.toLocaleDateString() + ' to ' + new Date().toLocaleDateString();
+            container.appendChild(p1);
+            const p2 = document.createElement('p');
+            p2.textContent = 'Total Bookings: ' + totalBookings;
+            container.appendChild(p2);
+            const p3 = document.createElement('p');
+            p3.textContent = 'Total Payments: ₹' + totalPayments;
+            container.appendChild(p3);
+            const p4 = document.createElement('p');
+            p4.textContent = 'Approved Payments: ₹' + approvedPayments;
+            container.appendChild(p4);
+
+            reportContainer.appendChild(container);
+        } catch (error) {
+            console.error('Error generating report:', error);
+            while (reportContainer.firstChild) reportContainer.removeChild(reportContainer.firstChild);
+            const errorP = document.createElement('p');
+            errorP.textContent = 'Error generating report';
+            reportContainer.appendChild(errorP);
+        }
+    }
+
+    // ============================================
+    // ADD SERVICE MODAL
+    // ============================================
+    function showAddServiceModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.cssText = 'max-width: 500px;';
+
+        const header = document.createElement('div');
+        header.className = 'modal-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Add New Service';
+        header.appendChild(h3);
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-modal';
+        closeBtn.textContent = '×';
+        header.appendChild(closeBtn);
+        content.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'modal-body';
+        const form = document.createElement('form');
+        form.id = 'addServiceForm';
+
+        const nameGroup = document.createElement('div');
+        nameGroup.className = 'form-group';
+        const nameLabel = document.createElement('label');
+        nameLabel.textContent = 'Service Name';
+        nameGroup.appendChild(nameLabel);
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.id = 'serviceName';
+        nameInput.className = 'form-control';
+        nameInput.required = true;
+        nameGroup.appendChild(nameInput);
+        form.appendChild(nameGroup);
+
+        const iconGroup = document.createElement('div');
+        iconGroup.className = 'form-group';
+        const iconLabel = document.createElement('label');
+        iconLabel.textContent = 'Icon Class';
+        iconGroup.appendChild(iconLabel);
+        const iconInput = document.createElement('input');
+        iconInput.type = 'text';
+        iconInput.id = 'serviceIcon';
+        iconInput.className = 'form-control';
+        iconInput.value = 'fas fa-tools';
+        iconInput.required = true;
+        iconGroup.appendChild(iconInput);
+        const iconSmall = document.createElement('small');
+        iconSmall.textContent = 'Font Awesome icon class (e.g., fas fa-bolt)';
+        iconGroup.appendChild(iconSmall);
+        form.appendChild(iconGroup);
+
+        const descGroup = document.createElement('div');
+        descGroup.className = 'form-group';
+        const descLabel = document.createElement('label');
+        descLabel.textContent = 'Description';
+        descGroup.appendChild(descLabel);
+        const descTextarea = document.createElement('textarea');
+        descTextarea.id = 'serviceDescription';
+        descTextarea.className = 'form-control';
+        descTextarea.rows = 3;
+        descTextarea.required = true;
+        descGroup.appendChild(descTextarea);
+        form.appendChild(descGroup);
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'submit-btn';
+        const submitIcon = createIcon('fas fa-plus');
+        submitBtn.appendChild(submitIcon);
+        submitBtn.appendChild(document.createTextNode(' Add Service'));
+        form.appendChild(submitBtn);
+
+        body.appendChild(form);
+        content.appendChild(body);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        closeBtn.addEventListener('click', () => modal.remove());
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('serviceName').value.trim();
+            const icon = document.getElementById('serviceIcon').value.trim();
+            const description = document.getElementById('serviceDescription').value.trim();
+            if (!name || !icon || !description) { showToast('Please fill all fields'); return; }
+            try {
+                const servicesSnapshot = await database.ref('services').once('value');
+                let maxId = 0;
+                servicesSnapshot.forEach(child => { const id = parseInt(child.key); if (id > maxId) maxId = id; });
+                const newId = maxId + 1;
+                await database.ref('services/' + newId).set({ name, icon, description });
+                showToast('Service added successfully!');
+                modal.remove();
+                loadServicesList();
+            } catch (error) {
+                console.error('Error adding service:', error);
+                showToast('Failed to add service');
+            }
+        });
+    }
+
+    // ============================================
+    // ADD SUB ADMIN MODAL
+    // ============================================
+    function showAddSubAdminModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.cssText = 'max-width: 550px;';
+
+        const header = document.createElement('div');
+        header.className = 'modal-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Add New Sub Admin';
+        header.appendChild(h3);
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-modal';
+        closeBtn.textContent = '×';
+        header.appendChild(closeBtn);
+        content.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'modal-body';
+        const form = document.createElement('form');
+        form.id = 'addSubAdminForm';
+
+        const emailGroup = document.createElement('div');
+        emailGroup.className = 'form-group';
+        const emailLabel = document.createElement('label');
+        emailLabel.textContent = 'Email';
+        emailGroup.appendChild(emailLabel);
+        const emailInput = document.createElement('input');
+        emailInput.type = 'email';
+        emailInput.id = 'subAdminEmail';
+        emailInput.className = 'form-control';
+        emailInput.required = true;
+        emailInput.placeholder = 'Enter email address';
+        emailGroup.appendChild(emailInput);
+        form.appendChild(emailGroup);
+
+        const userGroup = document.createElement('div');
+        userGroup.className = 'form-group';
+        const userLabel = document.createElement('label');
+        userLabel.textContent = 'Username';
+        userGroup.appendChild(userLabel);
+        const userInput = document.createElement('input');
+        userInput.type = 'text';
+        userInput.id = 'subAdminUsername';
+        userInput.className = 'form-control';
+        userInput.required = true;
+        userInput.placeholder = 'Enter username';
+        userGroup.appendChild(userInput);
+        form.appendChild(userGroup);
+
+        const pwdGroup = document.createElement('div');
+        pwdGroup.className = 'form-group password-group';
+        const pwdLabel = document.createElement('label');
+        pwdLabel.textContent = 'Password';
+        pwdGroup.appendChild(pwdLabel);
+        const pwdInput = document.createElement('input');
+        pwdInput.type = 'password';
+        pwdInput.id = 'subAdminPassword';
+        pwdInput.className = 'form-control';
+        pwdInput.required = true;
+        pwdInput.placeholder = 'Enter password (min 8 characters)';
+        pwdGroup.appendChild(pwdInput);
+        const pwdToggle = document.createElement('button');
+        pwdToggle.type = 'button';
+        pwdToggle.className = 'password-toggle-btn';
+        pwdToggle.dataset.target = 'subAdminPassword';
+        const eyeIcon = document.createElement('i');
+        eyeIcon.className = 'fas fa-eye';
+        pwdToggle.appendChild(eyeIcon);
+        pwdGroup.appendChild(pwdToggle);
+        const pwdSmall = document.createElement('small');
+        pwdSmall.textContent = 'Min 8 characters';
+        pwdGroup.appendChild(pwdSmall);
+        form.appendChild(pwdGroup);
+
+        const permGroup = document.createElement('div');
+        permGroup.className = 'form-group';
+        const permLabel = document.createElement('label');
+        permLabel.textContent = 'Permissions';
+        permGroup.appendChild(permLabel);
+        const permGrid = document.createElement('div');
+        permGrid.className = 'permissions-grid';
+        const permData = [
+            { id: 'permDashboard', label: 'View Dashboard', checked: true },
+            { id: 'permUsers', label: 'Manage Users', checked: true },
+            { id: 'permPayments', label: 'Manage Payments', checked: true },
+            { id: 'permBookings', label: 'Manage Bookings', checked: true },
+            { id: 'permServices', label: 'Manage Services', checked: true },
+            { id: 'permComplaints', label: 'Manage Complaints', checked: true },
+            { id: 'permSettings', label: 'Access Settings', checked: true }
+        ];
+        permData.forEach(pd => {
+            const label = document.createElement('label');
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.id = pd.id;
+            if (pd.checked) cb.checked = true;
+            label.appendChild(cb);
+            label.appendChild(document.createTextNode(' ' + pd.label));
+            permGrid.appendChild(label);
+        });
+        permGroup.appendChild(permGrid);
+        form.appendChild(permGroup);
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'submit-btn';
+        const submitIcon = createIcon('fas fa-plus');
+        submitBtn.appendChild(submitIcon);
+        submitBtn.appendChild(document.createTextNode(' Create Sub Admin'));
+        form.appendChild(submitBtn);
+
+        body.appendChild(form);
+        content.appendChild(body);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        // Setup password toggle for modal
+        modal.querySelectorAll('.password-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var targetId = this.dataset.target;
+                var input = document.getElementById(targetId);
+                if (!input) return;
+                var icon = this.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            });
+        });
+
+        closeBtn.addEventListener('click', () => modal.remove());
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('subAdminEmail').value.trim();
+            const username = document.getElementById('subAdminUsername').value.trim();
+            const password = document.getElementById('subAdminPassword').value;
+            if (!email || !username || !password) { showToast('Please fill all fields'); return; }
+            if (!validatePassword(password)) { showToast('Password must be at least 8 characters'); return; }
+            if (!validateEmail(email)) { showToast('Please enter a valid email address'); return; }
+
+            const permissions = {
+                canViewDashboard: document.getElementById('permDashboard').checked,
+                canManageUsers: document.getElementById('permUsers').checked,
+                canManagePayments: document.getElementById('permPayments').checked,
+                canManageBookings: document.getElementById('permBookings').checked,
+                canManageServices: document.getElementById('permServices').checked,
+                canManageComplaints: document.getElementById('permComplaints').checked,
+                canAccessSettings: document.getElementById('permSettings').checked
+            };
+
+            try {
+                const subAdminId = 'subadmin_' + Date.now();
+                try {
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    await userCredential.user.sendEmailVerification();
+                    if (!userCredential.user.uid) {
+                        showToast('Failed to get user UID. Please try again.');
+                        return;
+                    }
+                    await database.ref('subAdmins/' + subAdminId).set({
+                        email,
+                        username,
+                        permissions,
+                        status: 'active',
+                        uid: userCredential.user.uid,
+                        createdAt: new Date().toISOString()
+                    });
+                } catch (authError) {
+                    if (authError.code === 'auth/email-already-in-use') {
+                        showToast('This email is already registered. Please use a different email.');
+                        return;
+                    }
+                    throw authError;
+                }
+                showToast('Sub Admin created successfully! They can login with the provided email and password.');
+                modal.remove();
+                loadSubAdminsList();
+            } catch (error) {
+                console.error('Error creating sub admin:', error);
+                showToast('Failed to create sub admin: ' + (error.message || 'Please try again'));
+            }
+        });
+    }
+
+    // ============================================
+    // ADMIN ACTION FUNCTIONS
+    // ============================================
+
+    window.adminApprovePayment = async function(paymentId) {
+        try {
+            const paymentSnapshot = await database.ref('pendingPayments/' + paymentId).once('value');
+            const payment = paymentSnapshot.val();
+            if (!payment) { showToast('Payment not found'); return; }
+            if (!payment.transactionId) { showToast('Transaction ID is required for approval'); return; }
+            const adminEmail = sessionStorage.getItem('adminEmail') || 'admin';
+            await database.ref('pendingPayments/' + paymentId).update({
+                status: 'verified',
+                verifiedAt: new Date().toISOString(),
+                verifiedBy: adminEmail
+            });
+            const paymentRecord = {
+                id: paymentId,
+                userId: payment.userId,
+                userEmail: payment.userEmail,
+                userName: payment.userName,
+                userType: payment.userType,
+                amount: payment.amount,
+                description: payment.description,
+                type: payment.type,
+                status: 'approved',
+                paymentMethod: 'upi',
+                upiid: upiPayment.upiid,
+                transactionId: payment.transactionId,
+                metadata: payment.metadata,
+                createdAt: new Date().toISOString(),
+                verifiedAt: new Date().toISOString(),
+                verifiedBy: adminEmail
+            };
+            await database.ref('payments/' + paymentId).set(paymentRecord);
+            await database.ref('userPayments/' + payment.userId + '/' + paymentId).set(paymentRecord);
+            if (payment.metadata?.bookingId) {
+                await database.ref('bookings/' + payment.metadata.bookingId).update({
+                    paymentStatus: 'approved',
+                    showToProviders: true,
+                    status: 'submitted'
+                });
+                await database.ref('clientBookings/' + payment.userId + '/' + payment.metadata.bookingId).update({
+                    paymentStatus: 'approved',
+                    showToProviders: true,
+                    status: 'submitted'
+                });
+                sendNotification(payment.userId, 'payment_approved', {
+                    amount: payment.amount,
+                    paymentId: paymentId,
+                    bookingId: payment.metadata.bookingId
+                });
+            }
+            showToast('Payment approved successfully!');
+            loadPaymentsList();
+            loadAdminDashboard();
+        } catch (error) {
+            console.error('Error approving payment:', error);
+            showToast('Failed to approve payment');
+        }
+    };
+
+    window.adminRejectPayment = async function(paymentId) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.cssText = 'max-width: 400px;';
+
+        const header = document.createElement('div');
+        header.className = 'modal-header';
+        const h3 = document.createElement('h3');
+        h3.textContent = 'Reject Payment';
+        header.appendChild(h3);
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-modal';
+        closeBtn.textContent = '×';
+        header.appendChild(closeBtn);
+        content.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'modal-body';
+        const group = document.createElement('div');
+        group.className = 'form-group';
+        const label = document.createElement('label');
+        label.textContent = 'Rejection Reason';
+        group.appendChild(label);
+        const textarea = document.createElement('textarea');
+        textarea.id = 'rejectionReason';
+        textarea.className = 'form-control';
+        textarea.rows = 3;
+        textarea.placeholder = 'Enter reason for rejection...';
+        textarea.required = true;
+        group.appendChild(textarea);
+        body.appendChild(group);
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.id = 'confirmRejectBtn';
+        confirmBtn.className = 'submit-btn';
+        confirmBtn.style.cssText = 'background: #e53e3e;';
+        confirmBtn.textContent = 'Confirm Rejection';
+        body.appendChild(confirmBtn);
+        content.appendChild(body);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        closeBtn.addEventListener('click', () => modal.remove());
+
+        confirmBtn.addEventListener('click', async function() {
+            const reason = document.getElementById('rejectionReason').value.trim();
+            if (!reason) { showToast('Please enter rejection reason'); return; }
+            try {
+                const paymentSnapshot = await database.ref('pendingPayments/' + paymentId).once('value');
+                const payment = paymentSnapshot.val();
+                const adminEmail = sessionStorage.getItem('adminEmail') || 'admin';
+                await database.ref('pendingPayments/' + paymentId).update({
+                    status: 'rejected',
+                    rejectionReason: reason,
+                    rejectedAt: new Date().toISOString(),
+                    rejectedBy: adminEmail
+                });
+                const paymentRecord = {
+                    id: paymentId,
+                    userId: payment.userId,
+                    userEmail: payment.userEmail,
+                    userName: payment.userName,
+                    userType: payment.userType,
+                    amount: payment.amount,
+                    description: payment.description,
+                    type: payment.type,
+                    status: 'rejected',
+                    paymentMethod: 'upi',
+                    upiid: upiPayment.upiid,
+                    transactionId: payment.transactionId,
+                    rejectionReason: reason,
+                    metadata: payment.metadata,
+                    createdAt: new Date().toISOString(),
+                    rejectedAt: new Date().toISOString(),
+                    rejectedBy: adminEmail
+                };
+                await database.ref('payments/' + paymentId).set(paymentRecord);
+                await database.ref('userPayments/' + payment.userId + '/' + paymentId).set(paymentRecord);
+                sendNotification(payment.userId, 'payment_rejected', {
+                    amount: payment.amount,
+                    paymentId: paymentId,
+                    reason: reason
+                });
+                showToast('Payment rejected');
+                modal.remove();
+                loadPaymentsList();
+            } catch (error) {
+                console.error('Error rejecting payment:', error);
+                showToast('Failed to reject payment');
+            }
+        });
+    };
+
+    window.adminViewPaymentDetails = async function(paymentId) {
+        try {
+            let payment = null;
+            let pendingSnapshot = await database.ref('pendingPayments/' + paymentId).once('value');
+            if (pendingSnapshot.exists()) { payment = pendingSnapshot.val(); }
+            if (!payment) {
+                let approvedSnapshot = await database.ref('payments/' + paymentId).once('value');
+                if (approvedSnapshot.exists()) { payment = approvedSnapshot.val(); }
+            }
+            if (!payment) { showToast('Payment not found'); return; }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            content.style.cssText = 'max-width: 550px;';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const h3 = document.createElement('h3');
+            const icon = createIcon('fas fa-receipt');
+            h3.appendChild(icon);
+            h3.appendChild(document.createTextNode(' Payment Details'));
+            header.appendChild(h3);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-modal';
+            closeBtn.textContent = '×';
+            header.appendChild(closeBtn);
+            content.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            const fields = [
+                { label: 'Order ID:', value: payment.id || paymentId },
+                { label: 'Service Fee:', value: '₹' + (payment.amount || 0) },
+                { label: 'Service:', value: payment.description || payment.metadata?.service || 'N/A' },
+                { label: 'Booking ID:', value: payment.metadata?.bookingId || 'N/A' },
+                { label: 'Transaction ID:', value: payment.transactionId || 'Not submitted' },
+                { label: 'Payment Date/Time:', value: new Date(payment.createdAt || payment.timestamp).toLocaleString('en-IN') },
+                { label: 'User Mobile:', value: payment.userId || payment.userEmail || 'N/A' },
+                { label: 'User Name:', value: payment.userName || 'N/A' },
+                { label: 'User Type:', value: payment.userType === 'client' ? 'Client' : 'Service Provider' },
+                { label: 'Payment Status:', value: getStatusText(payment.status || 'pending_verification') }
+            ];
+            if (payment.rejectionReason) {
+                fields.push({ label: 'Rejection Reason:', value: payment.rejectionReason });
+            }
+            if (payment.verifiedBy) {
+                fields.push({ label: 'Verified By:', value: payment.verifiedBy });
+            }
+            if (payment.rejectedBy) {
+                fields.push({ label: 'Rejected By:', value: payment.rejectedBy });
+            }
+
+            fields.forEach(f => {
+                const row = document.createElement('div');
+                row.className = 'user-detail-row';
+                const label = document.createElement('div');
+                label.className = 'user-detail-label';
+                label.textContent = f.label;
+                const value = document.createElement('div');
+                value.className = 'user-detail-value';
+                if (f.label === 'Rejection Reason:') value.style.color = '#e53e3e';
+                value.textContent = sanitizeText(f.value);
+                row.appendChild(label);
+                row.appendChild(value);
+                body.appendChild(row);
+            });
+
+            content.appendChild(body);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            closeBtn.addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        } catch (error) {
+            console.error('Error fetching payment details:', error);
+            showToast('Failed to load payment details');
+        }
+    };
+
+    window.adminViewBookingDetails = async function(bookingId) {
+        try {
+            const bookingSnapshot = await database.ref('bookings/' + bookingId).once('value');
+            const booking = bookingSnapshot.val();
+            if (!booking) { showToast('Booking not found'); return; }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            content.style.cssText = 'max-width: 550px;';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const h3 = document.createElement('h3');
+            const icon = createIcon('fas fa-calendar-check');
+            h3.appendChild(icon);
+            h3.appendChild(document.createTextNode(' Booking Details'));
+            header.appendChild(h3);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-modal';
+            closeBtn.textContent = '×';
+            header.appendChild(closeBtn);
+            content.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            const fields = [
+                { label: 'Booking ID:', value: booking.id || bookingId },
+                { label: 'Service:', value: booking.service },
+                { label: 'Client Name:', value: booking.clientName },
+                { label: 'Client Mobile:', value: booking.clientId },
+                { label: 'Provider:', value: booking.providerName || 'Not assigned' },
+                { label: 'Status:', value: getStatusText(booking.status) },
+                { label: 'Payment Status:', value: getStatusText(booking.paymentStatus || 'pending') },
+                { label: 'Amount:', value: '₹' + (booking.totalAmount || booking.paymentAmount || 0) },
+                { label: 'Address:', value: booking.address || 'N/A' },
+                { label: 'State:', value: booking.state || 'N/A' },
+                { label: 'Pincode:', value: booking.pincode || 'N/A' },
+                { label: 'Booking Date:', value: booking.bookingDate || new Date(booking.createdAt).toLocaleDateString('en-IN') },
+                { label: 'Booking Time:', value: booking.bookingTime || new Date(booking.createdAt).toLocaleTimeString('en-IN') }
+            ];
+            if (booking.completedAt) {
+                fields.push({ label: 'Completed At:', value: new Date(booking.completedAt).toLocaleString('en-IN') });
+            }
+            if (booking.items && booking.items.length > 0) {
+                let itemsText = '';
+                booking.items.forEach(item => {
+                    itemsText += item.name + ': ' + item.quantity + ' ' + (item.unit || 'nos') + '\n';
+                });
+                fields.push({ label: 'Items:', value: itemsText });
+            }
+
+            fields.forEach(f => {
+                const row = document.createElement('div');
+                row.className = 'user-detail-row';
+                const label = document.createElement('div');
+                label.className = 'user-detail-label';
+                label.textContent = f.label;
+                const value = document.createElement('div');
+                value.className = 'user-detail-value';
+                value.textContent = sanitizeText(f.value);
+                row.appendChild(label);
+                row.appendChild(value);
+                body.appendChild(row);
+            });
+
+            content.appendChild(body);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            closeBtn.addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        } catch (error) {
+            console.error('Error fetching booking details:', error);
+            showToast('Failed to load booking details');
+        }
+    };
+
+    window.adminDeleteBooking = async function(bookingId) {
+        if (!confirm('⚠️ This will permanently delete this booking. This action cannot be undone. Proceed?')) return;
+        try {
+            const bookingSnapshot = await database.ref('bookings/' + bookingId).once('value');
+            const booking = bookingSnapshot.val();
+            if (!booking) { showToast('Booking not found'); return; }
+            await database.ref('bookings/' + bookingId).remove();
+            if (booking.clientId) {
+                await database.ref('clientBookings/' + booking.clientId + '/' + bookingId).remove();
+            }
+            await database.ref('quotations/' + bookingId).remove();
+            if (booking.paymentId) {
+                await database.ref('pendingPayments/' + booking.paymentId).remove();
+                await database.ref('payments/' + booking.paymentId).remove();
+                if (booking.clientId) {
+                    await database.ref('userPayments/' + booking.clientId + '/' + booking.paymentId).remove();
+                }
+            }
+            showToast('✅ Booking permanently deleted');
+            loadBookingsList();
+            loadAdminDashboard();
+        } catch (error) {
+            console.error('Error deleting booking', error);
+            showToast('❌ Failed to delete booking');
+        }
+    };
+
+    window.adminEditService = async function(serviceId) {
+        try {
+            const snapshot = await database.ref('services/' + serviceId).once('value');
+            const service = snapshot.val();
+            if (!service) { showToast('Service not found'); return; }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            content.style.cssText = 'max-width: 500px;';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const h3 = document.createElement('h3');
+            h3.textContent = 'Edit Service';
+            header.appendChild(h3);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-modal';
+            closeBtn.textContent = '×';
+            header.appendChild(closeBtn);
+            content.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            const form = document.createElement('form');
+            form.id = 'editServiceForm';
+
+            const nameGroup = document.createElement('div');
+            nameGroup.className = 'form-group';
+            const nameLabel = document.createElement('label');
+            nameLabel.textContent = 'Service Name';
+            nameGroup.appendChild(nameLabel);
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.id = 'editServiceName';
+            nameInput.className = 'form-control';
+            nameInput.value = service.name || '';
+            nameInput.required = true;
+            nameGroup.appendChild(nameInput);
+            form.appendChild(nameGroup);
+
+            const iconGroup = document.createElement('div');
+            iconGroup.className = 'form-group';
+            const iconLabel = document.createElement('label');
+            iconLabel.textContent = 'Icon Class';
+            iconGroup.appendChild(iconLabel);
+            const iconInput = document.createElement('input');
+            iconInput.type = 'text';
+            iconInput.id = 'editServiceIcon';
+            iconInput.className = 'form-control';
+            iconInput.value = service.icon || '';
+            iconInput.required = true;
+            iconGroup.appendChild(iconInput);
+            const iconSmall = document.createElement('small');
+            iconSmall.textContent = 'Font Awesome icon class (e.g., fas fa-bolt)';
+            iconGroup.appendChild(iconSmall);
+            form.appendChild(iconGroup);
+
+            const descGroup = document.createElement('div');
+            descGroup.className = 'form-group';
+            const descLabel = document.createElement('label');
+            descLabel.textContent = 'Description';
+            descGroup.appendChild(descLabel);
+            const descTextarea = document.createElement('textarea');
+            descTextarea.id = 'editServiceDescription';
+            descTextarea.className = 'form-control';
+            descTextarea.rows = 3;
+            descTextarea.textContent = service.description || '';
+            descTextarea.required = true;
+            descGroup.appendChild(descTextarea);
+            form.appendChild(descGroup);
+
+            const submitBtn = document.createElement('button');
+            submitBtn.type = 'submit';
+            submitBtn.className = 'submit-btn';
+            const submitIcon = createIcon('fas fa-save');
+            submitBtn.appendChild(submitIcon);
+            submitBtn.appendChild(document.createTextNode(' Update Service'));
+            form.appendChild(submitBtn);
+
+            body.appendChild(form);
+            content.appendChild(body);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            closeBtn.addEventListener('click', () => modal.remove());
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = document.getElementById('editServiceName').value.trim();
+                const icon = document.getElementById('editServiceIcon').value.trim();
+                const description = document.getElementById('editServiceDescription').value.trim();
+                if (!name || !icon || !description) { showToast('Please fill all fields'); return; }
+                try {
+                    await database.ref('services/' + serviceId).update({ name, icon, description });
+                    showToast('Service updated successfully!');
+                    modal.remove();
+                    loadServicesList();
+                } catch (error) {
+                    console.error('Error updating service:', error);
+                    showToast('Failed to update service');
+                }
+            });
+        } catch (error) {
+            console.error('Error loading service:', error);
+            showToast('Failed to load service');
+        }
+    };
+
+    window.adminDeleteService = async function(serviceId) {
+        if (!confirm('⚠️ This will permanently delete this service. This action cannot be undone. Proceed?')) return;
+        try {
+            await database.ref('services/' + serviceId).remove();
+            showToast('Service deleted successfully!');
+            loadServicesList();
+        } catch (error) {
+            console.error('Error deleting service:', error);
+            showToast('Failed to delete service');
+        }
+    };
+
+    window.adminViewUserDetails = async function(type, userId) {
+        try {
+            const userSnapshot = await database.ref('users/' + type + 's/' + userId).once('value');
+            const user = userSnapshot.val();
+            if (!user) { showToast('User not found'); return; }
+
+            let bookingsCount = 0;
+            if (type === 'client') {
+                const bookingsSnapshot = await database.ref('clientBookings/' + userId).once('value');
+                bookingsCount = bookingsSnapshot.numChildren();
+            } else {
+                const bookingsSnapshot = await database.ref('bookings').orderByChild('providerId').equalTo(userId).once('value');
+                bookingsCount = bookingsSnapshot.numChildren();
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            content.style.cssText = 'max-width: 550px;';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const h3 = document.createElement('h3');
+            const icon = createIcon('fas fa-user-circle');
+            h3.appendChild(icon);
+            h3.appendChild(document.createTextNode(' User Details'));
+            header.appendChild(h3);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-modal';
+            closeBtn.textContent = '×';
+            header.appendChild(closeBtn);
+            content.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            const fields = [
+                { label: 'Full Name:', value: user.name || 'N/A' },
+                { label: 'User Type:', value: type === 'client' ? 'Client' : 'Service Provider' },
+                { label: 'Mobile Number:', value: userId },
+                { label: 'Email ID:', value: user.email || 'N/A' },
+                { label: 'Registration Date:', value: user.createdAt ? new Date(user.createdAt).toLocaleString('en-IN') : 'N/A' },
+                { label: 'Email Verified:', value: user.emailVerified ? 'Yes' : 'No' },
+                { label: 'Account Status:', value: user.status === 'blocked' ? 'Blocked' : 'Active' }
+            ];
+            if (type === 'provider') {
+                fields.push({ label: 'Operating State:', value: user.state ? user.state.charAt(0).toUpperCase() + user.state.slice(1).replace(/_/g, ' ') : 'N/A' });
+                fields.push({ label: 'Services Offered:', value: user.services && user.services.length > 0 ? user.services.join(', ') : 'None' });
+            }
+            fields.push({ label: 'Total Bookings:', value: bookingsCount });
+
+            fields.forEach(f => {
+                const row = document.createElement('div');
+                row.className = 'user-detail-row';
+                const label = document.createElement('div');
+                label.className = 'user-detail-label';
+                label.textContent = f.label;
+                const value = document.createElement('div');
+                value.className = 'user-detail-value';
+                value.textContent = sanitizeText(f.value);
+                row.appendChild(label);
+                row.appendChild(value);
+                body.appendChild(row);
+            });
+
+            if (user.profilePhoto) {
+                const row = document.createElement('div');
+                row.className = 'user-detail-row';
+                const label = document.createElement('div');
+                label.className = 'user-detail-label';
+                label.textContent = 'Profile Photo:';
+                const value = document.createElement('div');
+                value.className = 'user-detail-value';
+                const img = document.createElement('img');
+                img.src = user.profilePhoto;
+                img.style.cssText = 'width: 60px; height: 60px; border-radius: 50%; object-fit: cover; cursor: pointer;';
+                img.addEventListener('click', () => window.open(img.src));
+                value.appendChild(img);
+                row.appendChild(label);
+                row.appendChild(value);
+                body.appendChild(row);
+            }
+
+            content.appendChild(body);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            closeBtn.addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        } catch (error) {
+            console.error('Error loading user details:', error);
+            showToast('Failed to load user details');
+        }
+    };
+
+    window.adminToggleUserBlock = async function(type, userId, currentStatus) {
+        const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
+        if (!confirm('Are you sure you want to ' + (newStatus === 'blocked' ? 'block' : 'unblock') + ' this user?')) return;
+        try {
+            await database.ref('users/' + type + 's/' + userId).update({ status: newStatus });
+            sendNotification(userId, 'account_status_change', {
+                status: newStatus,
+                message: newStatus === 'blocked' ? 'Your account has been blocked by admin' : 'Your account has been unblocked'
+            });
+            showToast('User ' + (newStatus === 'blocked' ? 'blocked' : 'unblocked') + ' successfully!');
+            loadUsersList();
+        } catch (error) {
+            console.error('Error toggling user block:', error);
+            showToast('Failed to update user status');
+        }
+    };
+
+    window.adminChangeUserPassword = async function(type, userId) {
+        const newPassword = prompt('Enter new password for this user (min 8 characters):');
+        if (!newPassword) return;
+        if (!validatePassword(newPassword)) {
+            showToast('Password must be at least 8 characters');
+            return;
+        }
+        try {
+            const userSnapshot = await database.ref('users/' + type + 's/' + userId).once('value');
+            const user = userSnapshot.val();
+            if (!user || !user.email) { showToast('User email not found'); return; }
+            await auth.sendPasswordResetEmail(user.email);
+            showToast('Password reset email sent to user. They can set new password via email.');
+        } catch (error) {
+            console.error('Error changing password:', error);
+            showToast('Failed to change password: ' + error.message);
+        }
+    };
+
+    window.adminDeleteUserPermanently = async function(type, userId) {
+        if (!confirm('⚠️ WARNING: This will permanently delete ALL user data including bookings, payments, and profile. This action cannot be undone. Proceed?')) return;
+        try {
+            await database.ref('users/' + type + 's/' + userId).remove();
+            if (type === 'client') {
+                await database.ref('clientBookings/' + userId).remove();
+                const bookingsSnapshot = await database.ref('bookings').orderByChild('clientId').equalTo(userId).once('value');
+                const deletePromises = [];
+                bookingsSnapshot.forEach(child => {
+                    deletePromises.push(database.ref('bookings/' + child.key).remove());
+                    deletePromises.push(database.ref('quotations/' + child.key).remove());
+                });
+                await Promise.all(deletePromises);
+                await database.ref('userPayments/' + userId).remove();
+                await database.ref('notifications/' + userId).remove();
+            } else if (type === 'provider') {
+                const quotationsSnapshot = await database.ref('quotations').once('value');
+                const updatePromises = [];
+                quotationsSnapshot.forEach(bookingSnapshot => {
+                    bookingSnapshot.forEach(providerSnapshot => {
+                        if (providerSnapshot.val().providerId === userId) {
+                            updatePromises.push(providerSnapshot.ref.remove());
+                        }
+                    });
+                });
+                await Promise.all(updatePromises);
+                const bookingsSnapshot = await database.ref('bookings').once('value');
+                const bookingUpdates = [];
+                bookingsSnapshot.forEach(child => {
+                    const booking = child.val();
+                    if (booking.providerId === userId) {
+                        bookingUpdates.push(database.ref('bookings/' + child.key).update({
+                            providerId: null,
+                            providerName: null,
+                            providerMobile: null,
+                            status: 'submitted'
+                        }));
+                    }
+                });
+                await Promise.all(bookingUpdates);
+                await database.ref('userPayments/' + userId).remove();
+                await database.ref('notifications/' + userId).remove();
+            }
+            await database.ref('pendingPayments').orderByChild('userId').equalTo(userId).once('value')
+                .then(snapshot => { snapshot.forEach(child => child.ref.remove()); });
+            await database.ref('userEmails/' + userId).remove();
+            showToast('✅ User permanently deleted. User must register again to use service.');
+            loadUsersList();
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            showToast('❌ Failed to delete user');
+        }
+    };
+
+    window.adminResolveComplaint = async function(complaintId) {
+        if (!confirm('Mark this complaint as solved?')) return;
+        try {
+            const complaintSnapshot = await database.ref('complaints/' + complaintId).once('value');
+            const complaint = complaintSnapshot.val();
+            await database.ref('complaints/' + complaintId).update({
+                status: 'solved',
+                resolvedAt: new Date().toISOString(),
+                resolvedBy: sessionStorage.getItem('adminEmail') || 'admin'
+            });
+            if (complaint) {
+                sendNotification(complaint.userId, 'complaint_resolved', {
+                    complaintId: complaintId,
+                    subject: complaint.subject
+                });
+            }
+            showToast('Complaint marked as solved!');
+            loadComplaintsList();
+        } catch (error) {
+            console.error('Error resolving complaint:', error);
+            showToast('Failed to resolve complaint');
+        }
+    };
+
+    window.adminDeleteComplaint = async function(complaintId) {
+        if (!confirm('Delete this complaint?')) return;
+        try {
+            await database.ref('complaints/' + complaintId).remove();
+            showToast('Complaint deleted');
+            loadComplaintsList();
+        } catch (error) {
+            console.error('Error deleting complaint:', error);
+            showToast('Failed to delete complaint');
+        }
+    };
+
+    window.adminEditSubAdmin = async function(subAdminId) {
+        try {
+            const snapshot = await database.ref('subAdmins/' + subAdminId).once('value');
+            const subAdmin = snapshot.val();
+            if (!subAdmin) { showToast('Sub Admin not found'); return; }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            content.style.cssText = 'max-width: 500px;';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const h3 = document.createElement('h3');
+            h3.textContent = 'Edit Sub Admin';
+            header.appendChild(h3);
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'close-modal';
+            closeBtn.textContent = '×';
+            header.appendChild(closeBtn);
+            content.appendChild(header);
+
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            const form = document.createElement('form');
+            form.id = 'editSubAdminForm';
+
+            const emailGroup = document.createElement('div');
+            emailGroup.className = 'form-group';
+            const emailLabel = document.createElement('label');
+            emailLabel.textContent = 'Email';
+            emailGroup.appendChild(emailLabel);
+            const emailInput = document.createElement('input');
+            emailInput.type = 'email';
+            emailInput.id = 'editSubAdminEmail';
+            emailInput.className = 'form-control';
+            emailInput.value = subAdmin.email || '';
+            emailInput.required = true;
+            emailGroup.appendChild(emailInput);
+            form.appendChild(emailGroup);
+
+            const userGroup = document.createElement('div');
+            userGroup.className = 'form-group';
+            const userLabel = document.createElement('label');
+            userLabel.textContent = 'Username';
+            userGroup.appendChild(userLabel);
+            const userInput = document.createElement('input');
+            userInput.type = 'text';
+            userInput.id = 'editSubAdminUsername';
+            userInput.className = 'form-control';
+            userInput.value = subAdmin.username || '';
+            userInput.required = true;
+            userGroup.appendChild(userInput);
+            form.appendChild(userGroup);
+
+            const statusGroup = document.createElement('div');
+            statusGroup.className = 'form-group';
+            const statusLabel = document.createElement('label');
+            statusLabel.textContent = 'Status';
+            statusGroup.appendChild(statusLabel);
+            const statusSelect = document.createElement('select');
+            statusSelect.id = 'editSubAdminStatus';
+            statusSelect.className = 'form-control';
+            const optActive = document.createElement('option');
+            optActive.value = 'active';
+            optActive.textContent = 'Active';
+            if (subAdmin.status === 'active') optActive.selected = true;
+            statusSelect.appendChild(optActive);
+            const optBlocked = document.createElement('option');
+            optBlocked.value = 'blocked';
+            optBlocked.textContent = 'Blocked';
+            if (subAdmin.status === 'blocked') optBlocked.selected = true;
+            statusSelect.appendChild(optBlocked);
+            statusGroup.appendChild(statusSelect);
+            form.appendChild(statusGroup);
+
+            const permGroup = document.createElement('div');
+            permGroup.className = 'form-group';
+            const permLabel = document.createElement('label');
+            permLabel.textContent = 'Permissions';
+            permGroup.appendChild(permLabel);
+            const permGrid = document.createElement('div');
+            permGrid.className = 'permissions-grid';
+            const permData = [
+                { id: 'editPermDashboard', label: 'View Dashboard', checked: subAdmin.permissions?.canViewDashboard || false },
+                { id: 'editPermUsers', label: 'Manage Users', checked: subAdmin.permissions?.canManageUsers || false },
+                { id: 'editPermPayments', label: 'Manage Payments', checked: subAdmin.permissions?.canManagePayments || false },
+                { id: 'editPermBookings', label: 'Manage Bookings', checked: subAdmin.permissions?.canManageBookings || false },
+                { id: 'editPermServices', label: 'Manage Services', checked: subAdmin.permissions?.canManageServices || false },
+                { id: 'editPermComplaints', label: 'Manage Complaints', checked: subAdmin.permissions?.canManageComplaints || false },
+                { id: 'editPermSettings', label: 'Access Settings', checked: subAdmin.permissions?.canAccessSettings || false }
+            ];
+            permData.forEach(pd => {
+                const label = document.createElement('label');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.id = pd.id;
+                if (pd.checked) cb.checked = true;
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + pd.label));
+                permGrid.appendChild(label);
+            });
+            permGroup.appendChild(permGrid);
+            form.appendChild(permGroup);
+
+            const submitBtn = document.createElement('button');
+            submitBtn.type = 'submit';
+            submitBtn.className = 'submit-btn';
+            const submitIcon = createIcon('fas fa-save');
+            submitBtn.appendChild(submitIcon);
+            submitBtn.appendChild(document.createTextNode(' Update Sub Admin'));
+            form.appendChild(submitBtn);
+
+            body.appendChild(form);
+            content.appendChild(body);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            closeBtn.addEventListener('click', () => modal.remove());
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('editSubAdminEmail').value.trim();
+                const username = document.getElementById('editSubAdminUsername').value.trim();
+                const status = document.getElementById('editSubAdminStatus').value;
+                if (!email || !username) { showToast('Please enter email and username'); return; }
+
+                const permissions = {
+                    canViewDashboard: document.getElementById('editPermDashboard').checked,
+                    canManageUsers: document.getElementById('editPermUsers').checked,
+                    canManagePayments: document.getElementById('editPermPayments').checked,
+                    canManageBookings: document.getElementById('editPermBookings').checked,
+                    canManageServices: document.getElementById('editPermServices').checked,
+                    canManageComplaints: document.getElementById('editPermComplaints').checked,
+                    canAccessSettings: document.getElementById('editPermSettings').checked
+                };
+
+                try {
+                    await database.ref('subAdmins/' + subAdminId).update({ email, username, status, permissions });
+                    showToast('Sub Admin updated successfully!');
+                    modal.remove();
+                    loadSubAdminsList();
+                } catch (error) {
+                    console.error('Error updating sub admin:', error);
+                    showToast('Failed to update sub admin');
+                }
+            });
+        } catch (error) {
+            console.error('Error loading sub admin:', error);
+            showToast('Failed to load sub admin');
+        }
+    };
+
+    window.adminToggleSubAdminStatus = async function(subAdminId, newStatus) {
+        try {
+            await database.ref('subAdmins/' + subAdminId).update({ status: newStatus });
+            showToast('Sub Admin ' + (newStatus === 'active' ? 'activated' : 'blocked') + ' successfully!');
+            loadSubAdminsList();
+        } catch (error) {
+            console.error('Error updating sub admin status:', error);
+            showToast('Failed to update sub admin status');
+        }
+    };
+
+    window.adminDeleteSubAdmin = async function(subAdminId) {
+        if (!confirm('⚠️ This will permanently delete this sub admin. This action cannot be undone. Proceed?')) return;
+        try {
+            await database.ref('subAdmins/' + subAdminId).remove();
+            showToast('Sub Admin deleted successfully!');
+            loadSubAdminsList();
+        } catch (error) {
+            console.error('Error deleting sub admin:', error);
+            showToast('Failed to delete sub admin');
+        }
+    };
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    // Setup password toggles for admin login
+    setupPasswordToggles();
+
+    setTimeout(() => {
+        document.getElementById('adminLoginScreen').style.display = 'block';
+        const sessionToken = sessionStorage.getItem('adminSession');
+        if (sessionToken === 'true') {
+            showAdminPanel();
+        }
+    }, 100);
+    </script>
+</body>
+</html>
